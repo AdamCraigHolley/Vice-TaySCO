@@ -1,4 +1,4 @@
-import { parseBenchmark } from './benchmark-data.js';
+import { parseBenchmark, parsePlayLog } from './benchmark-data.js?v=compare';
 
 const byId = id => document.getElementById(id);
 const ui = {
@@ -12,7 +12,10 @@ const ui = {
   profile: byId('profile'),
   replay: byId('replay'),
 };
-const view = { chart: 'fps', mode: 'time', target: 30, profile: null, selected: '', limit: 60 };
+const view = {
+  chart: 'fps', mode: 'time', target: 30, benchmark: null, session: null,
+  profile: null, selected: '', limit: 60,
+};
 const readings = new Map();
 const formatters = [0, 1].map(digits => new Intl.NumberFormat('en', {
   minimumFractionDigits: digits,
@@ -50,8 +53,8 @@ function axis(limit, unit) {
   return result;
 }
 
-function position(value) {
-  return 100 * value / view.limit + '%';
+function position(value, limit = view.limit) {
+  return 100 * value / limit + '%';
 }
 
 function button(classes, text, key, label = text) {
@@ -143,21 +146,25 @@ function makeFrameRate() {
   return fps;
 }
 
-function makeBars(rows, unit) {
+function makeBars(rows, unit, limit = view.limit) {
   const plot = element('div', 'bar-plot');
-  rows.forEach(([key, title, value, description], index) => {
+  rows.forEach(([key, title, value, description, options = {}], index) => {
     const label = number(value) + ' ' + unit;
     const row = button('bar-row', '', key, title + ', ' + label);
     const rail = element('span', 'bar-rail');
-    const fill = element('span', key === 'frame' ? 'bar-fill bar-frame' : 'bar-fill');
+    const accent = options.accent ?? (key === 'frame');
+    const fill = element('span', accent ? 'bar-fill bar-frame' : 'bar-fill');
     fill.dataset.reveal = 'bar';
     fill.dataset.delay = index * 90;
-    fill.style.setProperty('--end', position(value));
+    fill.style.setProperty('--end', position(value, limit));
     rail.append(fill);
-    if (key === 'frame') {
+    const reference = options.reference ?? (key === 'frame' ? 'budget' : null);
+    if (reference) {
       const budget = element('span', 'budget-mark');
       budget.dataset.reveal = 'point';
       budget.dataset.delay = 270;
+      budget.dataset.reference = reference;
+      budget.dataset.limit = limit;
       budget.setAttribute('aria-hidden', 'true');
       rail.append(budget);
     }
@@ -166,8 +173,37 @@ function makeBars(rows, unit) {
     readings.set(key, () => ({ title, value: label, description }));
   });
   const ruler = element('div', 'bar-axis');
-  ruler.append(axis(view.limit, unit));
+  ruler.append(axis(limit, unit));
   plot.append(ruler);
+  return plot;
+}
+
+function makeComparison() {
+  const profiles = view.benchmark.profiles;
+  const plot = element('div', 'compare-plot');
+  const charts = [
+    {
+      title: 'Median frame rate', unit: 'fps', reference: 'fps',
+      value: profile => profile.fps.median,
+      minimum: Number(ui.slider.max), description: 'The gold marker is the selected FPS target.',
+    },
+    {
+      title: 'Median frame time', unit: 'ms', reference: 'budget',
+      value: profile => profile.timing.frame,
+      minimum: 1000 / Number(ui.slider.min), description: 'The gold marker is the selected frame budget.',
+    },
+  ];
+  for (const { title, unit, value, reference, minimum, description } of charts) {
+    const group = element('section');
+    const values = profiles.map(value);
+    const limit = Math.ceil(Math.max(minimum, ...values) / 20) * 20;
+    const rows = profiles.map(({ name }, index) => [
+      reference + '-' + index, name, values[index], title + '. ' + description,
+      { reference, accent: index === 0 },
+    ]);
+    group.append(element('h3', '', title), makeBars(rows, unit, limit));
+    plot.append(group);
+  }
   return plot;
 }
 
@@ -182,9 +218,12 @@ function makeFrameTiming() {
     ], 'MB');
   }
   view.limit = Math.max(100, Math.ceil(Math.max(...Object.values(timing)) / 20) * 20);
+  const gpuReading = view.profile.name === 'Series S'
+    ? 'The reported Series S GPU counter is still under review.'
+    : 'Median time reported by the GPU counter.';
   return makeBars([
     ['frame', 'Frame time', timing.frame, 'The median full-frame duration. The gold line marks the selected frame budget.'],
-    ['gpu', 'GPU', timing.gpu, 'Median time reported by the GPU counter.'],
+    ['gpu', 'GPU counter', timing.gpu, gpuReading],
     ['prepare', 'Preparing', timing.prepare, 'Median time reported by the preparation counter.'],
     ['back', 'Copying back', timing.back, 'Median time reported by the copy-back counter.'],
     ['copy', 'Copies', timing.copy, 'Median time reported by the copy counter.'],
@@ -196,6 +235,92 @@ function svgElement(tag, attrs) {
   const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
   for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
   return node;
+}
+
+function makeSession() {
+  const { minutes } = view.session;
+  const plot = element('div', 'session-plot');
+  const svg = svgElement('svg', { viewBox: '0 0 780 244', 'aria-hidden': 'true' });
+  const left = 50;
+  const right = 744;
+  const top = 26;
+  const bottom = 202;
+  const maximum = Math.max(30, Math.ceil(Math.max(...minutes.map(p => p.fps)) / 5) * 5);
+  const elapsed = Math.max(1, minutes.at(-1).elapsed - minutes[0].elapsed);
+  const y = value => bottom - (bottom - top) * value / maximum;
+  const points = minutes.map(p => ({
+    x: left + (right - left) * (p.elapsed - minutes[0].elapsed) / elapsed, y: y(p.fps),
+  }));
+  const tick = (x, y, value, anchor) => {
+    const label = svgElement('text', { x, y, 'text-anchor': anchor });
+    label.textContent = value;
+    svg.append(label);
+  };
+  const step = maximum === 30 ? 5 : maximum / 5;
+  for (let fps = 0; fps <= maximum; fps += step) {
+    svg.append(svgElement('path', { d: 'M' + left + ' ' + y(fps) + 'H' + right, class: 'session-rule' }));
+    tick(left - 8, y(fps) + 5, fps, 'end');
+  }
+  svg.append(svgElement('path', { d: 'M' + left + ' ' + y(30) + 'H' + right, class: 'session-target' }));
+  tick(right, y(30) - 8, '30 fps target', 'end');
+  const path = points.map((p, index) => {
+    const connected = index > 0 && minutes[index].elapsed - minutes[index - 1].elapsed === 1;
+    return (connected ? 'L' : 'M') + p.x + ' ' + p.y;
+  }).join('');
+  const line = svgElement('path', {
+    d: path, class: 'session-reveal', pathLength: 1, 'stroke-dasharray': 1, 'stroke-dashoffset': 0,
+  });
+  line.dataset.reveal = 'line';
+  svg.append(svgElement('path', { d: path, class: 'session-line' }), line);
+  for (const index of new Set([0, .25, .5, .75, 1].map(n => Math.round(n * (minutes.length - 1))))) {
+    tick(points[index].x, bottom + 25, minutes[index].time, 'middle');
+  }
+  const guide = svgElement('path', { class: 'session-guide' });
+  const marker = svgElement('circle', { r: 6, class: 'session-point' });
+  svg.append(guide, marker);
+  const input = element('input');
+  input.type = 'range';
+  input.id = 'logged-minute';
+  input.min = 0;
+  input.max = minutes.length - 1;
+  const caption = element('label', '', 'Logged minute');
+  caption.htmlFor = input.id;
+  const output = element('output');
+  output.setAttribute('for', input.id);
+  const controls = element('div', 'session-controls');
+  controls.append(caption, input, output);
+  plot.append(svg, controls);
+  minutes.forEach((p, index) => {
+    readings.set('minute-' + index, () => ({
+      title: p.time + ' UTC',
+      value: number(p.fps) + ' fps',
+      description: p.scene + ' · Preparing ' + number(p.preparing) + ' ms · Copying back ' + number(p.copyingBack) + ' ms',
+    }));
+  });
+  function selectMinute(index, announce = true) {
+    const point = points[index];
+    guide.setAttribute('d', 'M' + point.x + ' ' + top + 'V' + bottom);
+    marker.setAttribute('cx', point.x);
+    marker.setAttribute('cy', point.y);
+    input.value = index;
+    output.value = minutes[index].time + ' UTC';
+    input.setAttribute('aria-valuetext', output.value);
+    if (announce && view.selected !== 'minute-' + index) inspect('minute-' + index);
+  }
+  const moveScrubber = event => {
+    const box = svg.getBoundingClientRect();
+    const position = (event.clientX - box.left) / box.width * 780;
+    const closest = points.reduce((best, point, index) =>
+      Math.abs(point.x - position) < Math.abs(points[best].x - position) ? index : best, 0);
+    selectMinute(closest);
+  };
+  svg.addEventListener('pointermove', event => {
+    if (event.pointerType === 'mouse') moveScrubber(event);
+  });
+  svg.addEventListener('click', moveScrubber);
+  input.addEventListener('input', () => selectMinute(input.valueAsNumber));
+  selectMinute(minutes.length - 1, false);
+  return plot;
 }
 
 function gpuRing(load) {
@@ -263,6 +388,22 @@ function updateTarget(value) {
   for (const preset of ui.presets) {
     preset.setAttribute('aria-pressed', String(Number(preset.dataset.target) === value));
   }
+  const comparing = view.chart === 'compare';
+  byId('fps-difference-label').parentElement.hidden = comparing;
+  byId('time-difference-label').parentElement.hidden = comparing;
+  const gaps = byId('comparison-gaps');
+  gaps.hidden = !comparing;
+  if (comparing) {
+    gaps.replaceChildren(...view.benchmark.profiles.map(profile => {
+      const difference = value - profile.fps.median;
+      const row = element('div');
+      const label = profile.name + (difference >= 0 ? ' to target' : ' above target');
+      const gap = element('dd', '', number(Math.abs(difference)) + ' fps');
+      gap.dataset.tone = difference > 0 ? 'warm' : 'cool';
+      row.append(element('dt', '', label), gap);
+      return row;
+    }));
+  }
   const goal = ui.plot.querySelector('.pin-goal');
   if (goal) {
     goal.style.setProperty('--x', position(value));
@@ -273,7 +414,10 @@ function updateTarget(value) {
     gap.style.setProperty('--width', position(Math.abs(fpsDelta)));
     gap.classList.toggle('ahead', fpsDelta < 0);
   }
-  ui.plot.querySelector('.budget-mark')?.style.setProperty('--x', position(frameBudget));
+  for (const mark of ui.plot.querySelectorAll('.budget-mark')) {
+    const reference = mark.dataset.reference === 'fps' ? value : frameBudget;
+    mark.style.setProperty('--x', position(reference, Number(mark.dataset.limit)));
+  }
   if (view.selected === 'goal') inspect('goal');
 }
 
@@ -287,8 +431,9 @@ function animateChart(explicit = false) {
     if (reveal === 'ring') keyframes = [
       { strokeDashoffset: '100' }, { strokeDashoffset: mark.getAttribute('stroke-dashoffset') },
     ];
+    if (reveal === 'line') keyframes = [{ strokeDashoffset: '1' }, { strokeDashoffset: '0' }];
     mark.animate(keyframes, {
-      duration: reveal === 'point' ? 300 : 680,
+      duration: reveal === 'point' ? 300 : reveal === 'line' ? 1050 : 680,
       delay: Number(mark.dataset.delay ?? 0),
       easing: 'cubic-bezier(.25,.08,.24,1)',
       fill: 'backwards',
@@ -302,15 +447,18 @@ function animateChart(explicit = false) {
 
 function renderChart() {
   readings.clear();
+  renderContext();
   const resourceSamples = view.profile.resources?.samples;
   const hardwareCaption = resourceSamples === undefined ? 'Hardware readings for the full session.' :
     number(resourceSamples, 0) + ' samples across the full session, including loading.';
   const display = {
+    compare: ['Compare console profiles', 'The profiles share a scale in each chart. Change the target to move the gold markers.', makeComparison, 'fps-0'],
     fps: ['Frame rate in the world', 'Drag the gold marker to compare the samples with a different target.', makeFrameRate, 'median'],
     timing: view.mode === 'time' ?
       ['Frame timing', 'Separate medians for each timing counter.', makeFrameTiming, 'frame'] :
       ['Data transferred per frame', 'Median reported data volume by counter.', makeFrameTiming, 'copy'],
     hardware: ['GPU and memory', hardwareCaption, makeHardware, 'vram'],
+    session: ['Frame rate over the session', 'Move across the chart or use the slider to inspect a recorded minute.', makeSession, 'minute-' + (view.session?.minutes.length - 1)],
   };
   const [title, caption, makePlot, initial] = display[view.chart];
   byId('chart-title').textContent = title;
@@ -343,20 +491,38 @@ function selectChart(name, focus = false) {
   renderChart();
 }
 
-function renderProfile(data, profile) {
-  view.profile = profile;
+function renderContext() {
+  const { benchmark: data, profile, session } = view;
+  const comparing = view.chart === 'compare';
+  const playLog = view.chart === 'session';
+  byId('overview').hidden = comparing || playLog;
+  byId('profile-field').hidden = comparing || playLog || data.profiles.length < 2;
+  byId('target-panel').hidden = playLog;
+  byId('dashboard-grid').classList.toggle('session-view', playLog);
+  if (playLog) {
+    byId('benchmark-context').replaceChildren(
+      session.profile + ' · Play log · Build ', element('code', '', session.build),
+      ' · ' + session.minutes.length + ' recorded minutes',
+    );
+    return;
+  }
   const date = new Intl.DateTimeFormat('en-GB', {
     day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
   }).format(new Date(data.date + 'T00:00:00Z'));
   byId('benchmark-context').replaceChildren(
-    profile.name + ' · RTX 4090 · Build ', element('code', '', data.build),
-    ' · ' + date + ' · ' + number(profile.samples, 0) + ' in-world samples',
+    (comparing ? 'RTX 4090 · Build ' : profile.name + ' · RTX 4090 · Build '),
+    element('code', '', data.build), ' · ' + date,
+    comparing ? ' · ' + data.profiles.length + ' measured profiles' : ' · ' + number(profile.samples, 0) + ' in-world samples',
   );
+}
+
+function renderProfile(profile) {
+  view.profile = profile;
   showValue('stat-fps', profile.fps.median, 'fps');
   showValue('stat-low', profile.fps.low, 'fps');
   showValue('stat-frame', profile.timing.frame, 'ms');
   showValue('stat-gpu', profile.resources?.load ?? null, '%', 0);
-  renderChart();
+  selectChart(view.chart);
 }
 
 function measurementsTable(profiles) {
@@ -404,24 +570,33 @@ function bindTargetMarker() {
 }
 
 async function start() {
-  const source = await fetch(new URL('./measurements.md', import.meta.url));
+  const sessionRequest = fetch(new URL('./play-log.md', import.meta.url), { cache: 'no-cache' })
+    .then(async response => response.ok ? parsePlayLog(await response.text()) : null)
+    .catch(() => null);
+  const source = await fetch(new URL('./measurements.md', import.meta.url), { cache: 'no-cache' });
   if (!source.ok) throw new Error('Measurement source returned HTTP ' + source.status);
   const data = parseBenchmark(await source.text());
+  view.benchmark = data;
+  view.session = await sessionRequest;
+  byId('compare-tab').hidden = data.profiles.length < 2;
+  byId('session-tab').hidden = !view.session;
+  const activeTabs = ui.tabs.filter(tab => !tab.hidden);
+  const requested = location.hash.slice(1);
+  view.chart = activeTabs.find(tab => tab.dataset.chart === requested)?.dataset.chart ?? activeTabs[0].dataset.chart;
   for (const profile of data.profiles) ui.profile.add(new Option(profile.name, profile.name));
-  byId('profile-field').hidden = data.profiles.length < 2;
   ui.profile.addEventListener('change', () => {
-    renderProfile(data, data.profiles.find(profile => profile.name === ui.profile.value));
+    renderProfile(data.profiles.find(profile => profile.name === ui.profile.value));
   });
   for (const tab of ui.tabs) {
     tab.addEventListener('click', () => selectChart(tab.dataset.chart));
     tab.addEventListener('keydown', event => {
-      const index = ui.tabs.indexOf(tab);
-      const last = ui.tabs.length - 1;
+      const index = activeTabs.indexOf(tab);
+      const last = activeTabs.length - 1;
       const next = { ArrowLeft: index === 0 ? last : index - 1, ArrowRight: index === last ? 0 : index + 1,
         Home: 0, End: last }[event.key];
       if (next === undefined) return;
       event.preventDefault();
-      selectChart(ui.tabs[next].dataset.chart, true);
+      selectChart(activeTabs[next].dataset.chart, true);
     });
   }
   for (const type of ['pointerover', 'click', 'focusin']) {
@@ -442,7 +617,7 @@ async function start() {
   ui.replay.addEventListener('click', () => animateChart(true));
   bindTargetMarker();
   measurementsTable(data.profiles);
-  renderProfile(data, data.profiles[0]);
+  renderProfile(data.profiles[0]);
   byId('load-status').hidden = true;
   ui.dashboard.hidden = false;
 }

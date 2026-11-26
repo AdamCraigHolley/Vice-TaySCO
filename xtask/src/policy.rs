@@ -33,9 +33,11 @@ const ALLOWED_DOCUMENTATION: &[&str] = &[
     "docs/benchmark-dashboard.css",
     "docs/benchmark-dashboard.js",
     "docs/benchmark-data.js",
-    "docs/charts/series-x-fps-distribution.svg",
-    "docs/charts/series-x-timing-counters.svg",
+    "docs/charts/profile-frame-rate.svg",
+    "docs/charts/profile-frame-timing.svg",
+    "docs/charts/session-frame-rate.svg",
     "docs/index.html",
+    "scripts/generate-benchmark-charts.mjs",
 ];
 
 /// Paths explicitly exempted, with a reason. Keep this empty if at all possible.
