@@ -49,20 +49,22 @@ developer or publisher.
 <!-- measurements:start -->
 ### Measured sessions (build 672cf831)
 
-All runs used `scripts\play.ps1` and the RTX 4090 settings in full screen. The
-short benchmarks ran a scripted route. The longer Series S session was played
-by hand.
+On the test PC above, with `scripts\play.ps1` and its RTX 4090 settings, in
+full screen, each session walking, running, turning the camera and taking
+captures every minute. Nothing compiled meanwhile; the screen was recorded
+to video on the card's encoder throughout.
 
 | Profile | In the world | To the start screen / to the world | fps: median (p10-p90; 1% low) | ms per frame (median) | Game memory, median / max | Card: memory max, load, power, temperature |
 |---|---|---|---|---|---|---|
 | Series X | 10 min, ended by the runner | 103 s / 161 s | **14.3** (13.6-14.7; 1% low 3.5) | 69.7: 35.0 GPU, 24.3 preparing, 20.0 copying back | 29.3 / 30.6 GB | 13.6 GB, 90.0%, 152.9 W, 57.0 C |
 | Series S | 10 min, ended by the runner | 88 s / 127 s | **20.8** (19.2-21.8; 1% low 8.7) | 48.1: 0.2 GPU, 36.9 preparing, 15.8 copying back | 24.2 / 26.0 GB | 12.0 GB, 81.0%, 129.9 W, 48.0 C |
 | Series X, `-Safe` | 10 min, ended by the runner | 87 s / 125 s | **15.4** (13.5-17.8; 1% low 3.3) | 64.7: 5.2 GPU, 37.3 preparing, 14.4 copying back | 33.4 / 34.9 GB | 17.6 GB, 97.0%, 154.4 W, 50.8 C |
-| Series S, 70-minute playtest | 70 min, ended by the runner | 88 s / 126 s | **12.9** (8.3-20.1; 1% low 5.0) | 77.2: 0.0 GPU, 45.5 preparing, 16.1 copying back | 39.4 / 52.3 GB | 18.4 GB, 49.5%, 110.2 W, 50.1 C |
+| Series X, `-RayTracing` | 10 min, ended by the runner | 88 s / 133 s | **8.9** (6.8-11.4; 1% low 4.8) | 112.3: 63.0 GPU, 35.9 preparing, 14.9 copying back | 36.1 / 37.3 GB | 16.4 GB, 84.5%, 137.2 W, 50.4 C |
+| Series S, 70 minutes played through the prison | 70 min, ended by the runner | 88 s / 126 s | **12.9** (8.3-20.1; 1% low 5.0) | 77.2: 0.0 GPU, 45.5 preparing, 16.1 copying back | 39.4 / 52.3 GB | 18.4 GB, 49.5%, 110.2 W, 50.1 C |
 
-Frame metrics use recorded in-world samples with over 1,000 draws. Hardware
-and memory were sampled every 20 seconds. The full tables are in
-[docs/measurements.md](docs/measurements.md).
+Every number is from the game's own once-a-second frame lines in the world
+(over 1,000 draws a frame) and samples every 20 s; the full tables, with each
+part of a frame, are in [docs/measurements.md](docs/measurements.md).
 <!-- measurements:end -->
 
 The [play log](docs/play-log.md) records the 70-minute session in detail.
