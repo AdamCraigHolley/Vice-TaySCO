@@ -53,6 +53,9 @@ Every number is from the game's own once-a-second frame lines in the world
 part of a frame, are in [docs/measurements.md](docs/measurements.md).
 <!-- measurements:end -->
 
+A longer session played by hand on Series S, minute by minute, with what
+worked and what looked wrong: [docs/play-log.md](docs/play-log.md).
+
 ### Benchmark charts
 
 Series X profile on the RTX 4090, build `672cf831`. See the
