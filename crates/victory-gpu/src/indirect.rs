@@ -304,8 +304,6 @@ fn rest() -> u32 {
 /// The clamp compiled from `source` (ours, or in the benchmark the one it
 /// replaced).
 fn make_from(device: &ID3D12Device, source: &str) -> windows::core::Result<Clamp> {
-    #[cfg(feature = "diagnostics")]
-    let batched = source == batch::SOURCE;
     let source = &format!("#define WIDEST {}u\n#define REST {}\n{source}", widest(amd(device)), rest());
     let mut code: Option<ID3DBlob> = None;
     let mut errors: Option<ID3DBlob> = None;
@@ -2665,6 +2663,7 @@ void main(uint3 g : SV_GroupID, uint i : SV_GroupIndex) {
     /// clamps spend all of it is followed, after the reset, by one whose
     /// small record still runs.
     #[test]
+    #[ignore = "checks VICTORY_INDIRECT_REST=1, off by default since cool_fox: run with it set"]
     fn host_list_budget_starts_empty_at_each_submission() {
         let Some(host) = super::host() else {
             return;
@@ -3148,6 +3147,7 @@ void main(uint3 group : SV_GroupID, uint3 thread : SV_DispatchThreadID) {
     /// Records past the list's budget come out empty, and one read by many
     /// executions is charged for each.
     #[test]
+    #[ignore = "checks VICTORY_INDIRECT_REST=1, off by default since cool_fox: run with it set"]
     fn warp_batch_charges_every_execution() {
         let Some(mut warp) = WarpHarness::new() else {
             return;
@@ -3428,7 +3428,6 @@ void work() {
         heap_pairs: [[Option<ID3D12DescriptorHeap>; 2]; 2],
         tables: [D3D12_GPU_DESCRIPTOR_HANDLE; 2],
         targets: [D3D12_CPU_DESCRIPTOR_HANDLE; 2],
-        depth_written: D3D12_CPU_DESCRIPTOR_HANDLE,
         depth_tested: D3D12_CPU_DESCRIPTOR_HANDLE,
         stamps: ID3D12QueryHeap,
         back: ID3D12Resource,
@@ -3736,7 +3735,6 @@ void work() {
                     heap_pairs,
                     tables,
                     targets,
-                    depth_written,
                     depth_tested,
                     stamps,
                     back,
