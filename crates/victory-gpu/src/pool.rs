@@ -203,7 +203,8 @@ struct Pool<B> {
 
 impl<B: Clone> Pool<B> {
     const fn new(most: usize) -> Pool<B> {
-        Pool { blocks: Vec::new(), resting: VecDeque::new(), spare: 0, most, retry_growth_at: 0 }
+        let spare = if most < SPARE { most } else { SPARE };
+        Pool { blocks: Vec::new(), resting: VecDeque::new(), spare, most, retry_growth_at: 0 }
     }
 
     /// A piece of `len` bytes and the memory it lies in, and whether that
@@ -227,7 +228,7 @@ impl<B: Clone> Pool<B> {
         if len == 0 || len > if ripe.ahead > 0 { BLOCK } else { BLOCK / 2 } {
             return None;
         }
-        self.rested(now);
+        let became_empty = self.release_rested(now);
         let mut found = None;
         for (i, block) in self.blocks.iter_mut().enumerate() {
             if let Some(block) = block
@@ -244,6 +245,10 @@ impl<B: Clone> Pool<B> {
                 self.blocks.iter().enumerate().filter_map(|(i, b)| Some((b.as_ref()?.made, i))).collect();
             unripe.sort_unstable();
             found = unripe.into_iter().find_map(|(_, i)| Some((i, self.blocks[i].as_mut()?.free.take(len, align)?)));
+        }
+        if became_empty {
+            // Let this request reuse a rested block before releasing spares.
+            self.trim_spares();
         }
         // A failed 64 MiB block must not trigger another driver call for each
         // small texture. Existing free ranges remain usable during backoff.
@@ -302,13 +307,21 @@ impl<B: Clone> Pool<B> {
         self.resting.push_back((now + REST, piece));
     }
 
-    /// Makes the pieces that rested long enough free, and lets go of empty
-    /// blocks past [`SPARE`].
+    #[cfg(test)]
     fn rested(&mut self, now: u64) {
-        self.reclaim(now, SPARES.load(Ordering::Relaxed), false);
+        self.reclaim(now, self.spare, false);
     }
 
     fn reclaim(&mut self, now: u64, limit: usize, sweep: bool) {
+        let became_empty = self.release_rested(now);
+        let most = limit.min(self.most);
+        let previous = std::mem::replace(&mut self.spare, most);
+        if sweep || became_empty || most < previous {
+            self.trim_spares();
+        }
+    }
+
+    fn release_rested(&mut self, now: u64) -> bool {
         let mut any = false;
         while let Some(&(ready, piece)) = self.resting.front()
             && ready <= now
@@ -319,17 +332,16 @@ impl<B: Clone> Pool<B> {
                 any |= block.free.whole(BLOCK);
             }
         }
-        // (Without a piece given back too, once there is less room.)
-        let most = limit.min(self.most);
-        let previous = std::mem::replace(&mut self.spare, most);
-        if sweep || any || most < previous {
-            let mut spare = 0;
-            for block in &mut self.blocks {
-                if block.as_ref().is_some_and(|b| b.free.whole(BLOCK)) {
-                    spare += 1;
-                    if spare > most {
-                        *block = None;
-                    }
+        any
+    }
+
+    fn trim_spares(&mut self) {
+        let mut spare = 0;
+        for block in &mut self.blocks {
+            if block.as_ref().is_some_and(|b| b.free.whole(BLOCK)) {
+                spare += 1;
+                if spare > self.spare {
+                    *block = None;
                 }
             }
         }
@@ -776,6 +788,23 @@ mod tests {
         pool.give(held, REST);
         pool.reclaim(2 * REST, 0, true);
         assert_eq!(pool.blocks(), 0);
+    }
+
+    #[test]
+    fn allocating_staging_keeps_the_commit_pressure_budget() {
+        let mut pool = Pool::new(STAGING_KEPT);
+        let (first, _, _) = pool.take(BLOCK / 2, 1, 0, || Some(1)).unwrap();
+        let (second, _, _) = pool.take(BLOCK / 2, 1, 0, || Some(1)).unwrap();
+        let (third, _, _) = pool.take(BLOCK / 2, 1, 0, || Some(2)).unwrap();
+        for piece in [first, second, third] {
+            pool.give(piece, 0);
+        }
+        pool.reclaim(REST - 1, 0, true);
+
+        let (_, memory, _) = pool.take(BLOCK / 2, 1, REST, || None).unwrap();
+        assert_eq!(memory, 1);
+        assert_eq!(pool.blocks(), 1);
+        assert_eq!(pool.spare, 0);
     }
 
     #[test]
