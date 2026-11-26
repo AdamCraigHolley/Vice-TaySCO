@@ -110,8 +110,9 @@ pub extern "system" fn CreateWindowExW(
     instance: HINSTANCE,
     param: *const c_void,
 ) -> HWND {
-    let (x, y, width, height) = fit(parent, x, y, width, height);
-    // SAFETY: the title's own arguments, forwarded (the size fitted).
+    let (ex_style, style, (x, y, width, height)) = place(ex_style, style, parent, x, y, width, height);
+    // SAFETY: the title's own arguments, forwarded (the size fitted, or the
+    // window made full screen).
     let hwnd = unsafe {
         wm::CreateWindowExW(
             ex_style, class, name, style, x, y, width, height, parent, menu, instance, param,
@@ -136,8 +137,9 @@ pub extern "system" fn CreateWindowExA(
     instance: HINSTANCE,
     param: *const c_void,
 ) -> HWND {
-    let (x, y, width, height) = fit(parent, x, y, width, height);
-    // SAFETY: the title's own arguments, forwarded (the size fitted).
+    let (ex_style, style, (x, y, width, height)) = place(ex_style, style, parent, x, y, width, height);
+    // SAFETY: the title's own arguments, forwarded (the size fitted, or the
+    // window made full screen).
     let hwnd = unsafe {
         wm::CreateWindowExA(
             ex_style, class, name, style, x, y, width, height, parent, menu, instance, param,
@@ -145,6 +147,48 @@ pub extern "system" fn CreateWindowExA(
     };
     hook(hwnd);
     hwnd
+}
+
+/// Where a window the title makes goes: full screen ([`full_screen`]), or
+/// fitted to the screen ([`fit`]); with the styles it gets.
+fn place(
+    ex_style: u32,
+    style: u32,
+    parent: HWND,
+    x: i32,
+    y: i32,
+    width: i32,
+    height: i32,
+) -> (u32, u32, (i32, i32, i32, i32)) {
+    if full_screen_on() {
+        // SAFETY: plain queries of the primary monitor's size.
+        let screen = unsafe { (wm::GetSystemMetrics(wm::SM_CXSCREEN), wm::GetSystemMetrics(wm::SM_CYSCREEN)) };
+        if let Some(full) = full_screen(ex_style, style, !parent.is_null(), screen) {
+            tracing::info!(width = screen.0, height = screen.1, "title window made full screen");
+            return full;
+        }
+    }
+    (ex_style, style, fit(parent, x, y, width, height))
+}
+
+/// `VICTORY_FULLSCREEN=1`: the title's windows fill the whole primary monitor
+/// with no frame, as a console fills its screen (the swap chain stretches
+/// to the window).
+fn full_screen_on() -> bool {
+    static ON: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *ON.get_or_init(|| std::env::var_os("VICTORY_FULLSCREEN").is_some_and(|v| v == "1"))
+}
+
+/// The styles and place of a full-screen window on a screen of `screen`
+/// pixels: a frameless popup over all of it. None for a window that keeps
+/// its own (one with a parent or owner, a child, a tool window).
+fn full_screen(ex_style: u32, style: u32, parented: bool, screen: (i32, i32)) -> Option<(u32, u32, (i32, i32, i32, i32))> {
+    if parented || style & wm::WS_CHILD != 0 || ex_style & wm::WS_EX_TOOLWINDOW != 0 || screen.0 <= 0 || screen.1 <= 0 {
+        return None;
+    }
+    let kept = wm::WS_VISIBLE | wm::WS_DISABLED | wm::WS_CLIPCHILDREN | wm::WS_CLIPSIBLINGS;
+    let frame = wm::WS_EX_WINDOWEDGE | wm::WS_EX_CLIENTEDGE | wm::WS_EX_DLGMODALFRAME | wm::WS_EX_STATICEDGE;
+    Some((ex_style & !frame, wm::WS_POPUP | (style & kept), (0, 0, screen.0, screen.1)))
 }
 
 /// A console title sizes its window to its render target (
@@ -407,6 +451,20 @@ mod tests {
     use super::*;
 
     extern "system" fn noop(_: u8, _: *mut c_void) {}
+
+    #[test]
+    fn a_full_screen_window_is_a_frameless_popup_over_the_screen() {
+        let framed = wm::WS_OVERLAPPEDWINDOW | wm::WS_VISIBLE;
+        let (ex, style, place) =
+            full_screen(wm::WS_EX_APPWINDOW | wm::WS_EX_WINDOWEDGE, framed, false, (3840, 2160)).unwrap();
+        assert_eq!(place, (0, 0, 3840, 2160));
+        assert_eq!(style, wm::WS_POPUP | wm::WS_VISIBLE);
+        assert_eq!(ex, wm::WS_EX_APPWINDOW);
+        // windows that keep their own place
+        assert!(full_screen(0, framed, true, (3840, 2160)).is_none());
+        assert!(full_screen(0, wm::WS_CHILD | wm::WS_VISIBLE, false, (3840, 2160)).is_none());
+        assert!(full_screen(wm::WS_EX_TOOLWINDOW, wm::WS_POPUP, false, (3840, 2160)).is_none());
+    }
 
     #[test]
     fn registrations_come_and_go() {
