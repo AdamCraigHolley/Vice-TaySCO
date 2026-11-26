@@ -157,6 +157,10 @@ h2 { font-size: 21px; font-weight: 700; letter-spacing: -.025em; }
 .compare-plot { display: grid; gap: 14px; }
 .compare-plot h3 { margin: 0 0 8px; font-size: 14px; font-weight: 650; }
 .compare-plot .bar-row { min-height: 39px; }
+.compare-plot .bar-row:nth-child(1) .bar-fill { background: #91adff; }
+.compare-plot .bar-row:nth-child(2) .bar-fill { background: #63e6c5; }
+.compare-plot .bar-row:nth-child(3) .bar-fill { background: #f3a4c5; }
+.compare-plot .bar-row:nth-child(4) .bar-fill { background: #ccadf9; }
 .compare-plot .budget-mark { box-shadow: none; }
 .dashboard-grid.session-view { grid-template-columns: minmax(0, 1fr); }
 
@@ -166,8 +170,8 @@ h2 { font-size: 21px; font-weight: 700; letter-spacing: -.025em; }
 .session-rule { stroke: var(--stroke); stroke-dasharray: 2 4; }
 .session-target { stroke: var(--gold); stroke-dasharray: 5 5; }
 .session-line, .session-reveal { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.session-line { stroke: #777AA7; stroke-width: 2.5; }
-.session-reveal { stroke: var(--iris); stroke-width: 3.5; }
+.session-line { stroke: #756491; stroke-width: 2.5; }
+.session-reveal { stroke: #ccadf9; stroke-width: 3.5; }
 .session-guide { stroke: #7B83B5; stroke-dasharray: 3 4; }
 .session-point { fill: var(--iris); stroke: var(--inset); stroke-width: 2.5; }
 .session-controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; }
