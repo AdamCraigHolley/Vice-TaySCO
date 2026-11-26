@@ -38,6 +38,17 @@ the session manually without a crash.
 | Monitor | Samsung Odyssey OLED G8 (G81SF), 3840 × 2160, 240 Hz |
 | OS | Windows 11 Pro 26H2 x64, build 26300.10075 |
 
+<!-- measurements:start -->
+## Measured sessions (2026-11-26, build 672cf831)
+
+On the test PC above, with `scripts\play.ps1` and its RTX 4090 settings, in
+full screen, each session walking, running, turning the camera and taking
+captures every minute. Nothing compiled meanwhile; the screen was recorded
+to video on the card's encoder throughout.
+
+The sessions are running; their numbers land here as each one ends.
+<!-- measurements:end -->
+
 ## Earlier Series X measurements (2026-11-26, 3840 × 2160)
 
 | | |
