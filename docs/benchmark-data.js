@@ -17,7 +17,8 @@ export function parseBenchmark(text) {
       const [backMs, backMb] = readPair(back);
       return {
         name,
-        label: name.replace(/, (\d+)[ -]minutes?\b.*/, ' ($1 min)'),
+        label: name.replace(/\x60/g, '').replace(/, (\d+)[ -]minutes?\b.*/, ' ($1 min)')
+          .replace(/, (-\S+)$/, ' ($1)'),
         samples: readNumber(samples),
         fps: {
           median: readNumber(median),

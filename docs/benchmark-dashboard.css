@@ -159,7 +159,8 @@ h2 { font-size: 21px; font-weight: 700; letter-spacing: -.025em; }
 .compare-plot .bar-row { min-height: 39px; }
 .compare-plot .bar-row:nth-child(1) .bar-fill { background: #91adff; }
 .compare-plot .bar-row:nth-child(2) .bar-fill { background: #63e6c5; }
-.compare-plot .bar-row:nth-child(3) .bar-fill { background: #ccadf9; }
+.compare-plot .bar-row:nth-child(3) .bar-fill { background: #f3a4c5; }
+.compare-plot .bar-row:nth-child(4) .bar-fill { background: #ccadf9; }
 .compare-plot .budget-mark { box-shadow: none; }
 .dashboard-grid.session-view { grid-template-columns: minmax(0, 1fr); }
 

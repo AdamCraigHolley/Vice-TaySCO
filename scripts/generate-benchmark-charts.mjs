@@ -4,7 +4,7 @@ import { parseBenchmark, parsePlayLog } from '../docs/benchmark-data.js';
 const width = 920;
 const goal = 30;
 const frameBudget = 1000 / goal;
-const colours = ['#91ADFF', '#63E6C5', '#CCADF9'];
+const colours = ['#91ADFF', '#63E6C5', '#F3A4C5', '#CCADF9'];
 const target = '#FFC186';
 const ink = '#EDF4FF';
 const panel = '#0E1829';
@@ -105,14 +105,15 @@ function frameTimingChart({ profiles }) {
   const x = scale(left, 820, maximum);
   const trackHeight = profiles.length * 21;
   const groupHeight = trackHeight + 19;
-  const top = 150;
+  const top = 150 + Math.floor((profiles.length - 1) / 4) * 26;
   const bottom = top + timingCounters.length * groupHeight - 14;
   const elements = [
     '  <path d="M36 95H884" class="grid"/>',
     ...profiles.map(({ label }, index) => {
-      const position = 38 + index * 205;
-      return `  <rect x="${position}" y="110" width="16" height="8" rx="4" fill="${runColour(index)}"/>
-  <text x="${position + 25}" y="120" class="muted">${escapeXml(label)}</text>`;
+      const position = 38 + index % 4 * 205;
+      const legendY = 110 + Math.floor(index / 4) * 26;
+      return `  <rect x="${position}" y="${legendY}" width="16" height="8" rx="4" fill="${runColour(index)}"/>
+  <text x="${position + 25}" y="${legendY + 10}" class="muted">${escapeXml(label)}</text>`;
     }),
     verticalGrid(x, top, bottom, maximum, maximum / 5, 'ms'),
   ];
@@ -147,7 +148,7 @@ function sessionChart({ profile, build, minutes }) {
   const x = point => toX(point.elapsed - first.elapsed);
   const high = minutes.reduce((a, b) => a.fps >= b.fps ? a : b);
   const low = minutes.reduce((a, b) => a.fps <= b.fps ? a : b);
-  const colour = colours[2];
+  const colour = colours.at(-1);
   const stats = [
     ['Peak minute', high], ['Lowest minute', low], ['Final minute', last],
   ];
