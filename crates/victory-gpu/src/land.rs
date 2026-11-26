@@ -367,16 +367,16 @@ pub(crate) fn ordered(pieces: &[Piece]) -> Vec<(usize, usize, usize)> {
     let mut order: Vec<usize> = (0..pieces.len()).collect();
     order.sort_by_key(|&i| pieces[i].1 / BLOCK);
     let mut out: Vec<(usize, usize, usize)> = Vec::with_capacity(order.len());
-    for group in order.chunk_by(|&a, &b| pieces[a].1 / BLOCK == pieces[b].1 / BLOCK) {
+    for group in order.chunk_by_mut(|&a, &b| pieces[a].1 / BLOCK == pieces[b].1 / BLOCK) {
         let alone = group.len() > 1 && group.iter().all(|&i| pieces[i].0 == pieces[group[0]].0);
         if !alone {
             out.extend(group.iter().map(|&i| (i, pieces[i].1, pieces[i].2)));
             continue;
         }
-        let mut sorted = group.to_vec();
-        sorted.sort_by_key(|&i| pieces[i].1);
+        // The indices are no longer needed in their original order.
+        group.sort_by_key(|&i| pieces[i].1);
         let begun = out.len();
-        for i in sorted {
+        for &i in group.iter() {
             let (_, at, len) = pieces[i];
             match out[begun..].last_mut() {
                 Some(last) if at <= last.1 + last.2 => {
