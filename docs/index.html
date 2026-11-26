@@ -6,8 +6,8 @@
   <meta name="color-scheme" content="dark">
   <meta name="description" content="Explore Vice-Tay frame rate, frame timings and GPU measurements on the RTX 4090.">
   <title>Performance benchmarks · Vice-Tay</title>
-  <link rel="stylesheet" href="./benchmark-dashboard.css">
-  <script type="module" src="./benchmark-dashboard.js"></script>
+  <link rel="stylesheet" href="./benchmark-dashboard.css?v=compare">
+  <script type="module" src="./benchmark-dashboard.js?v=compare"></script>
 </head>
 <body>
   <a class="skip-link" href="#benchmark">Skip to benchmarks</a>
@@ -37,18 +37,20 @@
     <p id="load-status" class="load-status" role="status">Loading measurements…</p>
     <noscript><p>Enable JavaScript to explore the charts, or open the measurement notes.</p></noscript>
     <div id="dashboard" hidden>
-      <section class="overview" aria-label="Benchmark overview">
+      <section class="overview" id="overview" aria-label="Benchmark overview">
         <div class="stat"><span>Median frame rate</span><strong id="stat-fps"></strong></div>
         <div class="stat"><span>1% low</span><strong id="stat-low"></strong></div>
         <div class="stat"><span>Median frame time</span><strong id="stat-frame"></strong></div>
         <div class="stat"><span>Median GPU load</span><strong id="stat-gpu"></strong></div>
       </section>
-      <div class="dashboard-grid">
+      <div class="dashboard-grid" id="dashboard-grid">
         <section class="card charts" aria-label="Interactive charts">
           <div class="tabs" role="tablist" aria-label="Metrics">
+            <button type="button" id="compare-tab" role="tab" aria-selected="false" aria-controls="chart-panel" data-chart="compare" tabindex="-1" hidden>Compare</button>
             <button type="button" id="fps-tab" role="tab" aria-selected="true" aria-controls="chart-panel" data-chart="fps">Frame rate</button>
             <button type="button" id="timing-tab" role="tab" aria-selected="false" aria-controls="chart-panel" data-chart="timing" tabindex="-1">Frame timing</button>
             <button type="button" id="hardware-tab" role="tab" aria-selected="false" aria-controls="chart-panel" data-chart="hardware" tabindex="-1">GPU &amp; memory</button>
+            <button type="button" id="session-tab" role="tab" aria-selected="false" aria-controls="chart-panel" data-chart="session" tabindex="-1" hidden>Play log</button>
           </div>
           <div class="chart-body" id="chart-panel" role="tabpanel" aria-labelledby="fps-tab" tabindex="0">
             <div class="card-heading">
@@ -69,7 +71,7 @@
             </div>
           </div>
         </section>
-        <aside class="card target" aria-labelledby="target-heading">
+        <aside class="card target" id="target-panel" aria-labelledby="target-heading">
           <h2 id="target-heading">Performance target</h2>
           <output id="target-value" for="fps-target"></output>
           <label for="fps-target">Target frame rate</label>
@@ -85,6 +87,7 @@
             <div><dt id="fps-difference-label">FPS to target</dt><dd id="fps-difference"></dd></div>
             <div><dt id="time-difference-label">Over frame budget</dt><dd id="time-difference"></dd></div>
           </dl>
+          <dl class="target-stats" id="comparison-gaps" hidden></dl>
         </aside>
       </div>
       <details class="measurements" id="measurement-table">

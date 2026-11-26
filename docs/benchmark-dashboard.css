@@ -84,7 +84,7 @@ h1 { font-size: clamp(2.15rem, 4.1vw, 3.75rem); font-weight: 745; letter-spacing
 
 .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(256px, .33fr); gap: 16px; align-items: start; }
 .card { min-width: 0; border: 1px solid var(--stroke); border-radius: 14px; background: var(--surface); }
-.tabs { display: flex; gap: 5px; padding: 10px 12px; border-bottom: 1px solid var(--stroke); }
+.tabs { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px 12px; border-bottom: 1px solid var(--stroke); }
 .tabs button, .modes button, .presets button, .replay, .legend button {
   border: 1px solid transparent;
   border-radius: 7px;
@@ -130,7 +130,10 @@ h2 { font-size: 21px; font-weight: 700; letter-spacing: -.025em; }
 .pin-band { top: 61px; height: 32px; }
 .pin-band .pin-core { width: 17px; height: 2px; border: 0; opacity: 0; }
 .pin-band:hover .pin-core, .pin-band[aria-pressed="true"] .pin-core { opacity: 1; }
-.axis { display: flex; justify-content: space-between; align-items: baseline; margin: 0 7px; color: var(--muted); font-size: 12px; }
+.axis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) 0; margin: 0 7px; color: var(--muted); font-size: 12px; }
+.axis span { width: max-content; transform: translateX(-50%); }
+.axis span:first-child { transform: none; }
+.axis span:last-child { transform: translateX(-100%); }
 .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 7px; margin-top: 11px; }
 .legend button { display: inline-flex; align-items: center; gap: 6px; }
 .swatch { width: 8px; height: 8px; border-radius: 2px; background: var(--iris); }
@@ -149,8 +152,27 @@ h2 { font-size: 21px; font-weight: 700; letter-spacing: -.025em; }
 .bar-frame { background: linear-gradient(90deg, #36796c, #8cead2); }
 .budget-mark { position: absolute; z-index: 1; left: var(--x); top: -5px; width: 2px; height: 22px; background: var(--gold); box-shadow: 0 0 0 2px #1d2630; }
 .bar-value { color: #dbe0ff; font-size: 13px; font-weight: 690; text-align: right; white-space: nowrap; }
-.bar-axis { padding: 4px 9px 0; }
+.bar-axis { padding: 4px 9px 0; border: 1px solid transparent; }
 .bar-axis .axis { grid-column: 2; margin: 0; font-size: 11px; }
+.compare-plot { display: grid; gap: 14px; }
+.compare-plot h3 { margin: 0 0 8px; font-size: 14px; font-weight: 650; }
+.compare-plot .bar-row { min-height: 39px; }
+.compare-plot .budget-mark { box-shadow: none; }
+.dashboard-grid.session-view { grid-template-columns: minmax(0, 1fr); }
+
+.session-plot { display: grid; gap: 12px; padding: 12px 15px; border: 1px solid var(--stroke); border-radius: 10px; background: var(--inset); }
+.session-plot svg { display: block; width: 100%; color: var(--muted); }
+.session-plot svg text { fill: currentColor; font-size: 16px; }
+.session-rule { stroke: var(--stroke); stroke-dasharray: 2 4; }
+.session-target { stroke: var(--gold); stroke-dasharray: 5 5; }
+.session-line, .session-reveal { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.session-line { stroke: #777AA7; stroke-width: 2.5; }
+.session-reveal { stroke: var(--iris); stroke-width: 3.5; }
+.session-guide { stroke: #7B83B5; stroke-dasharray: 3 4; }
+.session-point { fill: var(--iris); stroke: var(--inset); stroke-width: 2.5; }
+.session-controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 13px; }
+.session-controls input { flex: 1 1 120px; margin: 0; accent-color: var(--iris); }
+.session-controls output { min-width: 70px; text-align: right; color: var(--iris); font-weight: 650; }
 
 .hardware-overview { display: flex; align-items: center; gap: 18px; margin-bottom: 13px; }
 .ring-reading { position: relative; width: 110px; height: 110px; flex: 0 0 auto; }
@@ -181,6 +203,7 @@ h2 { font-size: 21px; font-weight: 700; letter-spacing: -.025em; }
 .target-stats dd { margin: 0; color: var(--ink); font-weight: 690; white-space: nowrap; }
 .target-stats dd[data-tone="warm"] { color: var(--gold); }
 .target-stats dd[data-tone="cool"] { color: var(--mint); }
+#comparison-gaps { margin-top: 12px; padding-top: 12px; }
 
 .measurements { margin-top: 16px; border: 1px solid var(--stroke); border-radius: 10px; background: #191c29; }
 .measurements summary { padding: 12px 16px; cursor: pointer; font-size: 14px; font-weight: 650; }
@@ -240,4 +263,6 @@ h2 { font-size: 21px; font-weight: 700; letter-spacing: -.025em; }
   .hardware-stats { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; }
   .hardware-stats div { padding: 5px; }
   .hardware-stats dd { font-size: 12px; }
+  .session-plot { padding-inline: 6px; }
+  .session-plot svg text { font-size: 24px; }
 }

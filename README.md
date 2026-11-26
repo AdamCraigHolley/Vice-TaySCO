@@ -58,14 +58,23 @@ worked and what looked wrong: [docs/play-log.md](docs/play-log.md).
 
 ### Benchmark charts
 
-Series X profile on the RTX 4090, build `672cf831`. See the
-[full measurements](docs/measurements.md) for the sample and methodology.
+The short benchmark runs compare the Series X and Series S profiles on the RTX
+4090. See the [full measurements](docs/measurements.md) for sample counts and methodology.
 
 [Open the interactive benchmark dashboard](https://taynangt.github.io/Vice-Tay/).
 
-![Series X frame rate: 14.3 fps median, 13.6–14.7 fps from p10 to p90, and 3.5 fps 1% low, with a 30 fps target](docs/charts/series-x-fps-distribution.svg)
+![Series X and Series S median FPS, 1% lows and percentile ranges against the 30 fps target](docs/charts/profile-frame-rate.svg)
 
-![Series X frame timing: 69.7 ms per frame, 35.0 ms GPU, 24.3 ms preparing, and 20.0 ms copying back, all medians, with a 33.3 ms frame budget for 30 fps](docs/charts/series-x-timing-counters.svg)
+![Series X and Series S median frame times, preparation times and copy counters](docs/charts/profile-frame-timing.svg)
+
+The Series S GPU timing counter is still under review. [Measurement note](docs/play-log.md#still-to-check)
+
+The longer Series S run has its own timeline of FPS medians per recorded minute.
+[Explore the recorded minutes](https://taynangt.github.io/Vice-Tay/#session).
+
+![Series S FPS medians in time order, with the 30 fps target and the highest and lowest logged minute](docs/charts/session-frame-rate.svg)
+
+<!-- Refresh the charts with node scripts/generate-benchmark-charts.mjs after editing the source tables. -->
 
 ### What is known to be wrong
 
