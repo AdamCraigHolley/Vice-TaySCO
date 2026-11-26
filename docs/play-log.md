@@ -128,6 +128,43 @@ More picture defects:
 - A plastic tank in flat, glowing purple; plants with a flat pink glow.
 - A flat black shape with no detail at all (the black-blob defect).
 
+## Part 4: a barn, a fight, a shoot-out (09:52 to 10:06 UTC)
+
+| UTC | Where and what | fps | lowest second | preparing ms | copying back ms | draws |
+|---|---|---|---|---|---|---|
+| 09:52 | A destination set on the map | 12.2 | 9.8 | 43.9 | 14.4 | 6,276 |
+| 09:53 | Checkpoint restarted from the pause menu | 12.8 | 12.1 | 41.9 | 13.4 | 5,372 |
+| 09:54 | Jetty, trailers, the corridor of cages | 10.7 | 10.2 | 40.5 | 14.1 | 7,016 |
+| 09:55 | Shoot-out: draw, aim, fire; one down | 10.7 | 8.5 | 38.5 | 15.6 | 7,025 |
+| 09:56 | Out of ammo, reload; dead, checkpoint skipped | 11.2 | 9.2 | 64.0 | 20.2 | 6,667 |
+| 09:57 | A fist fight in a barn, won | 11.5 | 7.6 | 68.4 | 20.8 | 6,662 |
+| 09:58 | Picking up an item, healing with it | 10.1 | 7.3 | 79.7 | 28.6 | 6,700 |
+| 09:59 | Dead again, back to the checkpoint | 10.5 | 4.4 | 62.3 | 20.6 | 6,762 |
+| 10:00-10:03 | The item again, out of the barn with an ally | 10.0-10.6 | 3.7 | 57-70 | 20-23 | 7,200-7,350 |
+| 10:04-10:06 | A shoot-out among trucks and quad bikes | 7.7-10.4 | 7.7 | 65-82 | 20-22 | 6,400-9,200 |
+
+### The finding of this session: it slows down the longer it runs
+
+- The game's private memory went 33 GB (prison), 36 GB (open water), 41.5 GB (09:49),
+  46 GB (09:57) and **47.8 GB at 10:05**, past the **43.4 GB of RAM Windows sees**: from
+  there part of the game lives in the page file.
+- Over the same stretch the time spent **preparing** each frame doubled (38-43 ms to
+  64-82 ms) and copying back rose (13-15 ms to 20-29 ms), while the card stayed where it
+  was (18.0 GB, 100-115 W). The frame rate went 20, 14, 10, 7.7 over the session, in
+  scenes of a similar weight.
+- The likely cause, still to be shown: something kept for each new resource or area is
+  never let go (a leak, or a cache with no ceiling), and once past physical RAM frame
+  preparation waits on the disk.
+- Next: find where the memory goes (per-category memory log, a memory map), then run a
+  long session again with a ceiling on that cache and see whether the frame rate holds.
+
+What worked in this part: setting a destination on the map, restarting a checkpoint from
+the pause menu, skipping one from the death screen, a fist fight, picking up an item and
+healing with it, drawing, aiming, firing and reloading, an ally that follows, dropped
+cash, enemies marked down on the minimap; several deaths and retries with no hang.
+
+More picture defects: a skylight in flat, glowing blue; a window in flat purple.
+
 ## Still to check
 
 - The log's "on the GPU" figure reads 0-2 ms on the Series S profile, against 33-36 ms on
