@@ -1584,19 +1584,33 @@ pub(crate) fn wide_run(jobs: Vec<Box<dyn FnOnce() + Send>>) {
 /// this one, the next number to whichever is free: for thousands of small
 /// pieces of work, where a job each ([`wide`]) is mostly the jobs' queue.
 pub(crate) fn wide_each(n: usize, work: impl Fn(usize) + Send + Sync + 'static) {
+    if n == 0 {
+        return;
+    }
+    let threads = (wide_threads() + 1).min(n);
+    if threads == 1 {
+        for i in 0..n {
+            work(i);
+        }
+        return;
+    }
+    // Small queues take one job at a time to keep the workers balanced.
+    // Large queues can amortize the shared counter across a few jobs.
+    let batch = if n / threads >= 64 { 4 } else { 1 };
     let next = Arc::new(std::sync::atomic::AtomicUsize::new(0));
     let work = Arc::new(work);
-    let threads = (wide_threads() + 1).min(n);
     let jobs = (0..threads)
         .map(|_| {
             let (next, work) = (next.clone(), work.clone());
             Box::new(move || {
                 loop {
-                    let i = next.fetch_add(1, Ordering::Relaxed);
-                    if i >= n {
+                    let first = next.fetch_add(batch, Ordering::Relaxed);
+                    if first >= n {
                         break;
                     }
-                    work(i);
+                    for i in first..n.min(first + batch) {
+                        work(i);
+                    }
                 }
             }) as Job
         })
