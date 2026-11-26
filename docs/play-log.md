@@ -80,8 +80,8 @@ What this part showed:
 
 - Driving answers to the triggers and the left stick; the minimap, the GPS route and the
   distance to the objective update as it moves.
-- The fail screen works, and so do its three choices (retry, skip the checkpoint,
-  restart the mission); with no choice it retries by itself.
+- The fail screen works: skipping the checkpoint was tried and works, and with no
+  choice it retries from the checkpoint by itself.
 - Two failures were the driver's: steering in one- and two-second steps at 15-19 fps is
   coarse. Three- to five-second legs with a look between them got there.
 
@@ -93,6 +93,40 @@ More picture defects:
 - The reflection on the boat's dark hull in square blocks.
 - One-second drops to 3.5 and 3.6 fps when a new area loads (the cut to the boat scene,
   skipping a checkpoint).
+
+## Part 3: binoculars, a camp, a shoot-out (09:39 to 09:51 UTC)
+
+| UTC | Where and what | fps | lowest second | preparing ms | copying back ms | draws |
+|---|---|---|---|---|---|---|
+| 09:39 | The second lead on the boat; the weapon wheel held open | 15.8 | 15.3 | 42.5 | 13.6 | 5,002 |
+| 09:40 | Picking binoculars with the right stick, zooming with the d-pad | 14.1 | 7.8 | 42.9 | 14.1 | 6,024 |
+| 09:41 | Watching a deal on a jetty through the binoculars | 14.1 | 9.7 | 41.7 | 13.7 | 6,068 |
+| 09:42 | A scene on the boat, arriving at a camp | 13.5 | 11.1 | 43.7 | 15.2 | 6,384 |
+| 09:43 | On foot, looking for someone in the camp | 13.2 | 12.6 | 40.6 | 13.1 | 7,138 |
+| 09:44 | Through brush; the pause menu (30 fps there) | 15.1 | 10.8 | 43.1 | 13.4 | 4,591 |
+| 09:45 | The 3D map from the pause menu, back to the game | 14.3 | 13.1 | 43.2 | 12.2 | 5,682 |
+| 09:46 | Among trailers; a grab prompt near a person | 13.5 | 9.8 | 41.6 | 12.3 | 5,709 |
+| 09:47 | A corridor of cages; hurt | 13.9 | 12.7 | 43.8 | 14.3 | 6,344 |
+| 09:48 | A shoot-out: taking cover, drawing a weapon | 13.7 | 12.2 | 47.0 | 16.6 | 5,974 |
+| 09:49 | Health critical, then dead | 12.6 | 10.1 | 55.3 | 17.4 | 7,081 |
+| 09:50 | Back at the checkpoint with full health | 12.0 | 9.8 | 39.4 | 14.4 | 6,824 |
+| 09:51 | Back to the camp | 12.3 | 11.6 | 47.5 | 14.8 | 6,412 |
+
+**The game's memory keeps climbing:** 33 GB in the prison, 35-36 GB on the water, then
+36.6 GB at 09:39 and 41.5 GB at 09:49, about 0.4-0.5 GB a minute in the camp. Card memory
+stayed flat (17.8-18.1 GB). It runs on with the large page file, but whether this is
+something held and never let go or a cache that grows with each new area is the next
+thing to find out.
+
+What worked: the weapon wheel, binoculars with zoom, the pause menu and the 3D map,
+going back out of menus, taking cover, drawing a weapon, taking damage, dying and coming
+back at the checkpoint, the prompt to grab a person.
+
+More picture defects:
+
+- Dark polygons covering corners of the 3D map.
+- A plastic tank in flat, glowing purple; plants with a flat pink glow.
+- A flat black shape with no detail at all (the black-blob defect).
 
 ## Still to check
 
