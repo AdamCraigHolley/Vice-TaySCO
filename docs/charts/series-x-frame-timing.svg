@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="290" viewBox="0 0 840 290" role="img" aria-labelledby="title description">
+  <title id="title">Frame timing</title>
+  <desc id="description">Series X profile, RTX 4090, build 672cf831. Separate median timings: 69.7 milliseconds per frame, 35.0 GPU, 24.3 preparing, 20.0 copying back.</desc>
+  <defs>
+    <linearGradient id="shine">
+      <stop stop-color="#FFF" stop-opacity="0"/>
+      <stop offset=".6" stop-color="#FFF" stop-opacity=".58"/>
+      <stop offset="1" stop-color="#FFF" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="bars">
+      <rect x="200" y="98" width="487.9" height="14" rx="5"/>
+      <rect x="200" y="138" width="245" height="14" rx="5"/>
+      <rect x="200" y="178" width="170.1" height="14" rx="5"/>
+      <rect x="200" y="218" width="140" height="14" rx="5"/>
+    </clipPath>
+  </defs>
+  <style>text { font-family: system-ui, 'Segoe UI', sans-serif; }</style>
+  <rect x=".5" y=".5" width="839" height="289" rx="16" fill="#101925" stroke="#344457"/>
+  <text x="32" y="43" fill="#F3F7FB" font-size="25" font-weight="700">Frame timing</text>
+  <text x="32" y="69" fill="#B1C1D2" font-size="16">Series X profile · separate medians per timing counter</text>
+
+  <!-- The scale starts at x=200 and advances 7 px per millisecond. -->
+  <path d="M200 84v164m140-164v164m140-164v164m140-164v164m140-164v164" stroke="#344457" stroke-dasharray="2 4"/>
+  <g fill="#E1EAF2" font-size="16" font-weight="600">
+    <text x="32" y="111">Frame time</text>
+    <text x="32" y="151">GPU</text>
+    <text x="32" y="191">Preparing</text>
+    <text x="32" y="231">Copying back</text>
+  </g>
+  <rect x="200" y="98" width="487.9" height="14" rx="5" fill="#65DFD1"/>
+  <g fill="#A5BFFF">
+    <rect x="200" y="138" width="245" height="14" rx="5"/>
+    <rect x="200" y="178" width="170.1" height="14" rx="5"/>
+    <rect x="200" y="218" width="140" height="14" rx="5"/>
+  </g>
+  <g clip-path="url(#bars)">
+    <rect x="114" y="90" width="86" height="150" fill="url(#shine)">
+      <animate attributeName="x" values="114; 114; 688; 688" keyTimes="0; .09; .61; 1" dur="6s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+  <g fill="#C9D8FF" font-size="16" font-weight="700">
+    <text x="700" y="111" fill="#9AF5E9">69.7 ms</text>
+    <text x="457" y="151">35.0 ms</text>
+    <text x="382.1" y="191">24.3 ms</text>
+    <text x="352" y="231">20.0 ms</text>
+  </g>
+  <text y="270" fill="#B1C1D2" font-size="15" text-anchor="middle">
+    <tspan x="200">0</tspan><tspan x="340">20</tspan><tspan x="480">40</tspan><tspan x="620">60</tspan><tspan x="760">80 ms</tspan>
+  </text>
+</svg>

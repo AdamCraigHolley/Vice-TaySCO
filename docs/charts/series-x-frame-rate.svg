@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="230" viewBox="0 0 840 230" role="img" aria-labelledby="title description">
+  <title id="title">Frame rate in the world</title>
+  <desc id="description">Series X profile, RTX 4090, build 672cf831. Median 14.3 frames per second, p10 to p90 13.6 to 14.7, 1% low 3.5, target 30.</desc>
+  <style>text { font-family: system-ui, 'Segoe UI', sans-serif; }</style>
+  <rect x=".5" y=".5" width="839" height="229" rx="16" fill="#101925" stroke="#344457"/>
+  <text x="32" y="43" fill="#F3F7FB" font-size="25" font-weight="700">Frame rate in the world</text>
+  <text x="32" y="69" fill="#B1C1D2" font-size="16">Series X profile · RTX 4090</text>
+
+  <!-- The scale starts at x=48 and advances 24 px per fps. -->
+  <path d="M48 136H768" stroke="#344457" stroke-width="4" stroke-linecap="round"/>
+  <path d="M48 151v6m120-6v6m120-6v6m120-6v6m120-6v6m120-6v6m120-6v6" stroke="#8394A7"/>
+  <path d="M374.4 136H400.8" stroke="#65DFD1" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="391.2" cy="136" r="5" fill="#E8FFFA" stroke="#101925" stroke-width="1.5"/>
+  <circle cx="391.2" cy="136" r="7" fill="none" stroke="#9AF5E9" stroke-width="1.5" opacity="0">
+    <animate attributeName="r" values="7; 7; 18; 18" keyTimes="0; .12; .38; 1" dur="5s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0; 0; .75; 0; 0" keyTimes="0; .12; .20; .38; 1" dur="5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="132" cy="136" r="5" fill="#A5BFFF"/>
+  <path d="M768 122v28" stroke="#F5CB80" stroke-width="2" stroke-linecap="round" stroke-dasharray="3 4"/>
+
+  <text x="132" y="114" fill="#C9D8FF" font-size="16" font-weight="650" text-anchor="middle">3.5 fps · 1% low</text>
+  <text x="391.2" y="114" fill="#9AF5E9" font-size="19" font-weight="700" text-anchor="middle">14.3 fps median</text>
+  <text x="768" y="114" fill="#F5CB80" font-size="16" font-weight="650" text-anchor="end">30 fps target</text>
+  <text y="178" fill="#B1C1D2" font-size="15" text-anchor="middle">
+    <tspan x="48">0</tspan><tspan x="168">5</tspan><tspan x="288">10</tspan><tspan x="408">15</tspan>
+    <tspan x="528">20</tspan><tspan x="648">25</tspan><tspan x="768">30</tspan>
+  </text>
+  <path d="M32 207h20" stroke="#65DFD1" stroke-width="5" stroke-linecap="round"/>
+  <text x="64" y="212" fill="#B1C1D2" font-size="15">10th–90th percentile · 13.6–14.7 fps</text>
+</svg>
