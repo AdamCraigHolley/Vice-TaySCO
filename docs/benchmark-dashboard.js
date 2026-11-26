@@ -302,12 +302,15 @@ function animateChart(explicit = false) {
 
 function renderChart() {
   readings.clear();
+  const resourceSamples = view.profile.resources?.samples;
+  const hardwareCaption = resourceSamples === undefined ? 'Hardware readings for the full session.' :
+    number(resourceSamples, 0) + ' samples across the full session, including loading.';
   const display = {
     fps: ['Frame rate in the world', 'Drag the gold marker to compare the samples with a different target.', makeFrameRate, 'median'],
     timing: view.mode === 'time' ?
       ['Frame timing', 'Separate medians for each timing counter.', makeFrameTiming, 'frame'] :
       ['Data transferred per frame', 'Median reported data volume by counter.', makeFrameTiming, 'copy'],
-    hardware: ['GPU and memory', 'Hardware readings sampled across the full session.', makeHardware, 'vram'],
+    hardware: ['GPU and memory', hardwareCaption, makeHardware, 'vram'],
   };
   const [title, caption, makePlot, initial] = display[view.chart];
   byId('chart-title').textContent = title;
