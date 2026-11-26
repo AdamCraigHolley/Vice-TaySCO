@@ -56,6 +56,8 @@ part of a frame, are in [docs/measurements.md](docs/measurements.md).
 A longer session played by hand on Series S, minute by minute, with what
 worked and what looked wrong: [docs/play-log.md](docs/play-log.md).
 
+[View the gameplay screenshots](https://github.com/TaynanGT/Vice-Tay-Screenshots#readme).
+
 ### Benchmark charts
 
 The short benchmark runs compare the Series X and Series S profiles on the RTX
