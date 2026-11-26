@@ -2739,17 +2739,22 @@ mod piece_tests {
 /// merged nor a reason to settle; the refresh leaves such ranges alone, and
 /// shaders read zeros there (fxceless/victory-fork#206: missing geometry
 /// with `VICTORY_LATE_WAIT`/`VICTORY_RELAY`).
-fn stale_pages_in(base: usize, copied: &[u64], a: usize, e: usize, written: &[(usize, u64)]) -> Vec<usize> {
+fn stale_pages_in<'a>(
+    base: usize,
+    copied: &'a [u64],
+    a: usize,
+    e: usize,
+    written: &'a [(usize, u64)],
+) -> impl Iterator<Item = usize> + 'a {
     (a / PAGE..e.div_ceil(PAGE))
-        .filter(|&page| page >= base)
-        .filter(|&page| match copied.get(page - base) {
+        .filter(move |&page| page >= base)
+        .filter(move |&page| match copied.get(page - base) {
             None => false,
             Some(0) => true,
             Some(&at) => written
                 .binary_search_by_key(&page, |&(p, _)| p)
                 .is_ok_and(|i| written[i].1 > at),
         })
-        .collect()
 }
 
 /// `runs` (from, to, whether the copy held it before), cut in those of pages
@@ -2867,10 +2872,13 @@ mod stale_tests {
         // Page 0x101 was never taken; page 0x102 was written after it was
         // taken, page 0x103 before.
         let written = [(0x102, 6), (0x103, 4)];
-        assert_eq!(stale_pages_in(base, &copied, at(0x100), at(0x104), &written), [0x101, 0x102]);
+        assert_eq!(
+            stale_pages_in(base, &copied, at(0x100), at(0x104), &written).collect::<Vec<_>>(),
+            [0x101, 0x102]
+        );
         // Part of a page counts as the page; pages outside the copy do not.
-        assert_eq!(stale_pages_in(base, &copied, at(0x101) + 8, at(0x101) + 16, &[]), [0x101]);
-        assert!(stale_pages_in(base, &copied, at(0x104), at(0x106), &[(0x104, 9)]).is_empty());
+        assert_eq!(stale_pages_in(base, &copied, at(0x101) + 8, at(0x101) + 16, &[]).next(), Some(0x101));
+        assert_eq!(stale_pages_in(base, &copied, at(0x104), at(0x106), &[(0x104, 9)]).next(), None);
     }
 }
 
@@ -3678,7 +3686,7 @@ impl Shadow {
         let base = start / PAGE;
         let copied = self.copied.lock().unwrap_or_else(|e| e.into_inner());
         busy.into_iter().any(|(a, e)| match crate::watch::asked(a, e) {
-            Some((_, written)) => !stale_pages_in(base, &copied, a, e, &written).is_empty(),
+            Some((_, written)) => stale_pages_in(base, &copied, a, e, &written).next().is_some(),
             None => true,
         })
     }
@@ -3742,7 +3750,7 @@ impl Shadow {
             let t = under_ns(0, t);
             let stale: Vec<usize> = {
                 let copied = self.copied.lock().unwrap_or_else(|e| e.into_inner());
-                stale_pages_in(base, &copied, a, e, &written)
+                stale_pages_in(base, &copied, a, e, &written).collect()
             };
             UNDER_NS[8].fetch_add(stale.len() as u64, Ordering::Relaxed);
             let t = under_ns(1, t);
