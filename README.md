@@ -1,8 +1,8 @@
-# VIctory for an RTX 4090
+# Vice-Tay
 
-A fork of [VIctory](https://github.com/Marvisak/VIctory), a compatibility layer
-that runs an Xbox Series title natively on Windows from files the user supplies,
-tuned and fixed on one PC: an **RTX 4090**, a **Ryzen 9 9950X3D** and **48 GB of
+[VIctory](https://github.com/Marvisak/VIctory), a compatibility layer that runs
+an Xbox Series title natively on Windows from files the user supplies, tuned and
+fixed on one PC: an **RTX 4090**, a **Ryzen 9 9950X3D** and **48 GB of
 RAM**, with a 4K screen. The aim is the world at 30 frames a second with the
 picture right, fully playable.
 
@@ -10,9 +10,10 @@ picture right, fully playable.
 copy of the game. It is not affiliated with or endorsed by the game's developer
 or publisher.
 
-It started from [codec-d/cool_fox](#credits) (now taken down), itself
-[avatarmanz/VIctory-7900XTX](https://github.com/avatarmanz/VIctory-7900XTX) with
-work for NVIDIA cards on top. Our fixes come over in batches; what each one
+It is published on its own, not as a GitHub fork, with the whole history of the
+trees it is built from: it started from [codec-d/cool_fox](#credits) (now taken
+down), itself [avatarmanz/VIctory-7900XTX](https://github.com/avatarmanz/VIctory-7900XTX)
+with work for NVIDIA cards on top. Our fixes come over in batches; what each one
 changes is in [docs/this-fork.md](docs/this-fork.md).
 
 ## Where it stands (2026-11-26, RTX 4090, Series X profile, 3840x2160)
@@ -45,8 +46,8 @@ model 6.6 and mesh shaders, Rust (the toolchain is pinned), the MSVC build tools
 with a Windows SDK, and your own dump of the title.
 
 ```powershell
-git clone https://github.com/TaynanGT/cool_fox
-cd cool_fox
+git clone https://github.com/TaynanGT/Vice-Tay
+cd Vice-Tay
 copy victory.example.toml victory.toml      # then set your paths, outside this folder
 cargo build --locked --profile diag -p victory --features diagnostics
 scripts\play.ps1 -Exe <path of your copy's executable>
@@ -81,7 +82,8 @@ comment where it is read.
 ## Credits
 
 This is a tree of other people's work with more on top. The history is kept, and
-commits taken from elsewhere name the commit and its author.
+commits taken from elsewhere name the commit and its author. Everyone with a
+commit in it is listed in [docs/credits.md](docs/credits.md).
 
 - **[VIctory](https://github.com/Marvisak/VIctory)** by Marvisak and its
   contributors: the loader, the runtime services, the Direct3D 12 back end and
@@ -104,11 +106,8 @@ commits taken from elsewhere name the commit and its author.
   every view of a page (with Spexivus, joroyt and tightfall), and Joshua Odom's
   reads into title memory.
 - **Geckomacabre** and **cxy0072019-sketch**: the texture read-back.
-- **[TaynanGT/Vice-Tay](https://github.com/TaynanGT/Vice-Tay)**: the runtime and
-  translator fixes this fork carries over.
 - **[XCL](https://github.com/ivall/xcl)** (GPL-2.0-only) was read for how the same
   title behaves under another layer; no code of it is here.
-- This fork's changes were made with [Claude Code](https://claude.com/claude-code).
 
 ## License
 

@@ -1,6 +1,6 @@
-# What this fork adds
+# What this repository adds
 
-This fork (TaynanGT) carries the work of the trees it comes from (see the README's
+Vice-Tay carries the work of the trees it comes from (see the README's
 credits) and the changes below, made and measured on one PC: RTX 4090, Ryzen 9
 9950X3D, 48 GB of RAM, a 4K screen. Each change names the switch that controls it
 where there is one; the default is the behaviour described.
