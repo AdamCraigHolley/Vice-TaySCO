@@ -23,7 +23,7 @@ developer or publisher.
   with menus, the map, checkpoints, deaths and retries, and never crashed or hung.
 - **It is not fast enough yet.** The world runs at 14 fps on the Series X profile
   in a fresh session. In the 30-minute Series S boat test, median frame rate rose
-  from 20.5 to **21.6 fps**. [Series S playtest](https://github.com/TaynanGT/Vice-Tay/pull/29).
+  from 21.6 to **22.7 fps**. [Series S playtest](https://github.com/TaynanGT/Vice-Tay/pull/37).
 - **It slows down the longer it runs.** In that 70-minute session the game's memory
   grew from 33 GB to 52 GB, past the 43 GB of RAM Windows sees, and the frame rate
   fell from about 20 to under 10. This is the next thing being worked on.
