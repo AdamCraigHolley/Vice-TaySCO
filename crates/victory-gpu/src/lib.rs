@@ -17,6 +17,12 @@
 
 #[cfg(windows)]
 mod ambient;
+#[cfg(windows)]
+mod lightprobe;
+#[cfg(windows)]
+mod texlate;
+#[cfg(windows)]
+mod texstore;
 #[cfg(all(windows, feature = "diagnostics"))]
 mod capture;
 #[cfg(windows)]
@@ -45,6 +51,8 @@ mod indirect;
 mod inplace;
 #[cfg(windows)]
 mod port;
+#[cfg(windows)]
+mod port_cbv;
 #[cfg(windows)]
 pub mod port_descriptors;
 #[cfg(windows)]
