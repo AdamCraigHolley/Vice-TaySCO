@@ -968,7 +968,31 @@ impl Views {
         let at = self.shapes.len() as u32;
         self.shapes.push(shape);
         self.shape_index.insert(shape, at);
+        #[cfg(feature = "diagnostics")]
+        if matches!(at + 1, 1024 | 16384 | 131_072 | 1_048_576) {
+            self.log_shape_words();
+        }
         Some(at)
+    }
+
+    /// How many distinct values each word of the shapes kept takes: the
+    /// words that tell shapes apart. Logged as the count of shapes passes a
+    /// few marks, to see which fields make shapes many.
+    #[cfg(feature = "diagnostics")]
+    fn log_shape_words(&self) {
+        let distinct = |word: &dyn Fn(&Shape) -> u32| {
+            self.shapes.iter().map(word).collect::<std::collections::BTreeSet<_>>().len()
+        };
+        let resource: Vec<usize> = (0..14).map(|w| distinct(&|s: &Shape| s.1[w])).collect();
+        let view: Vec<usize> = (0..14).map(|w| distinct(&|s: &Shape| s.2[w])).collect();
+        let unordered = distinct(&|s: &Shape| u32::from(s.0));
+        tracing::info!(
+            shapes = self.shapes.len(),
+            unordered,
+            ?resource,
+            ?view,
+            "shapes of placed views: distinct values of each word (resource description words 0-13; view description words 0-9 and 12-15)"
+        );
     }
 
     /// The view of placed memory [`placed_words`] named.
