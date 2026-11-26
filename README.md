@@ -52,10 +52,14 @@ Every number is from the game's own once-a-second frame lines in the world
 part of a frame, are in [docs/measurements.md](docs/measurements.md).
 <!-- measurements:end -->
 
-### Played by hand
+### Benchmark charts
 
-A 31-minute, 22-second session played by hand on the same PC, walking through
-the prison and the in-game menus: 20-25 fps observed, ended by hand, no crash.
+Series X profile on the RTX 4090, build `672cf831`. See the
+[full measurements](docs/measurements.md) for the sample and methodology.
+
+![Series X frame rate: 14.3 fps median, 13.6–14.7 fps from p10 to p90, and 3.5 fps 1% low](docs/charts/series-x-frame-rate.svg)
+
+![Series X frame timing: 69.7 ms per frame, 35.0 ms GPU, 24.3 ms preparing, and 20.0 ms copying back, all medians](docs/charts/series-x-frame-timing.svg)
 
 ### What is known to be wrong
 

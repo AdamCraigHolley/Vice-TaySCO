@@ -27,6 +27,11 @@ const ALLOWED_NAMES: &[&str] = &[
     "LICENSE-MIT",
     "LICENSE-APACHE",
 ];
+// Original documentation charts still go through every content check below.
+const ALLOWED_CHARTS: &[&str] = &[
+    "docs/charts/series-x-frame-rate.svg",
+    "docs/charts/series-x-frame-timing.svg",
+];
 
 /// Paths explicitly exempted, with a reason. Keep this empty if at all possible.
 const EXCEPTIONS: &[(&str, &str)] = &[(
@@ -149,6 +154,7 @@ pub fn check(path: &str, content: &[u8]) -> Vec<String> {
     let name = path.rsplit('/').next().unwrap_or(path);
     let ext = name.rsplit_once('.').map(|(_, e)| e.to_ascii_lowercase());
     let allowed = ALLOWED_NAMES.contains(&name)
+        || ALLOWED_CHARTS.contains(&path)
         || ext
             .as_deref()
             .is_some_and(|e| ALLOWED_EXTENSIONS.contains(&e));
@@ -236,6 +242,16 @@ mod tests {
         assert!(check("crates/x/src/lib.rs", b"fn main() {}\n").is_empty());
         assert!(check(".gitignore", b"/target/\n").is_empty());
         assert!(check(".githooks/pre-commit", b"#!/bin/sh\n").is_empty());
+    }
+
+    #[test]
+    fn chart_paths_keep_the_content_checks() {
+        let svg = br#"<svg xmlns="http://www.w3.org/2000/svg"/>"#;
+        for path in super::ALLOWED_CHARTS {
+            assert!(check(path, svg).is_empty());
+            assert!(!check(path, b"DDS \0").is_empty());
+        }
+        assert!(!check("docs/charts/other.svg", svg).is_empty());
     }
 
     #[test]
