@@ -55,8 +55,9 @@ What is known to be wrong:
 - Below 30 fps in the world; the GPU time and the copies back are the next targets.
 - The ray-traced structures are not built by default (`-RayTracing` turns the
   builder on), so a few hundred dispatches a frame are skipped and some light is missing.
-- Some faces show scrambled colour patches, some eyes are lit white, and a few
-  windows sparkle.
+- Skin, hair and some walls show flat bands of colour where the shading should
+  be smooth; some faces show scrambled colour patches, some eyes are lit white,
+  and a few windows sparkle.
 - The first run with a new build translates every shader while it plays
   (`victory shaders` does it ahead, see below).
 
