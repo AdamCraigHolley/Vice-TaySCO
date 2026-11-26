@@ -55,6 +55,45 @@ memory, 112-127 W and 45-46 C on the card.
 - Skin and hair in flat bands of colour.
 - Full-white frames between scenes are the game's own transitions: the next frame is right.
 
+## Part 2: the boat (09:26 to 09:38 UTC)
+
+| UTC | Where and what | fps | lowest second | preparing ms | copying back ms | draws |
+|---|---|---|---|---|---|---|
+| 09:26 | Office scene, then a cut to a scene on a boat | 12.7 | 3.5 | 41.4 | 13.4 | 2,740 |
+| 09:27 | Driving the boat on open water, minimap on screen | 18.6 | 10.5 | 37.8 | 14.2 | 3,092 |
+| 09:28 | Full throttle past other boats, a long bridge, a plane overhead | 18.2 | 14.6 | 38.9 | 15.1 | 3,736 |
+| 09:29 | Off course round an island; back to a checkpoint with a new objective | 19.1 | 13.0 | 38.3 | 12.2 | 3,554 |
+| 09:30 | Ran into mangroves: mission failed, the boat wrecked | 18.2 | 10.5 | 40.2 | 12.3 | 3,782 |
+| 09:31 | Retried from the checkpoint, round the island | 17.1 | 10.1 | 40.5 | 12.8 | 4,346 |
+| 09:32 | Mangroves again, failed; skipped the checkpoint | 18.4 | 13.6 | 39.5 | 12.1 | 3,766 |
+| 09:33 | New objective with a GPS route on the minimap | 18.2 | 15.0 | 39.0 | 11.8 | 3,870 |
+| 09:34 | Under an iron bridge, into the bushes | 18.9 | 16.9 | 38.0 | 11.6 | 4,348 |
+| 09:35 | Failed, skipped the checkpoint | 17.2 | 3.6 | 41.6 | 13.2 | 4,694 |
+| 09:36 | Short, careful legs: iron bridge, a canal | 16.5 | 9.7 | 42.0 | 13.4 | 5,007 |
+| 09:37 | Past a ruined bridge onto a lake | 17.1 | 12.9 | 41.6 | 14.1 | 4,562 |
+| 09:38 | Reached the objective, a scene starts | 16.4 | 14.8 | 42.1 | 14.3 | 4,658 |
+
+Game memory rose to 35-36 GB on open water (from 33 GB in the prison); card memory
+17.7-18.5 GB; 112-132 W and 43-46 C on the card.
+
+What this part showed:
+
+- Driving answers to the triggers and the left stick; the minimap, the GPS route and the
+  distance to the objective update as it moves.
+- The fail screen works, and so do its three choices (retry, skip the checkpoint,
+  restart the mission); with no choice it retries by itself.
+- Two failures were the driver's: steering in one- and two-second steps at 15-19 fps is
+  coarse. Three- to five-second legs with a look between them got there.
+
+More picture defects:
+
+- Light-blue flat rectangles and square blocks in the clouds, coming and going with the
+  camera.
+- Flat purple patches in tree tops.
+- The reflection on the boat's dark hull in square blocks.
+- One-second drops to 3.5 and 3.6 fps when a new area loads (the cut to the boat scene,
+  skipping a checkpoint).
+
 ## Still to check
 
 - The log's "on the GPU" figure reads 0-2 ms on the Series S profile, against 33-36 ms on
