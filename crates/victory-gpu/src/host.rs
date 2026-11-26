@@ -10237,6 +10237,9 @@ impl Host {
         match made {
             Ok(()) => Some((buffer?, data.cast())),
             Err(e) => {
+                // Shared mirrors and texture staging both consume system
+                // commit. Back off speculative uploads after a mirror OOM.
+                crate::residency::allocation_error(&e);
                 tracing::warn!(error = %e, size, "no shared buffer");
                 None
             }
