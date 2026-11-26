@@ -17,6 +17,7 @@ export function parseBenchmark(text) {
       const [backMs, backMb] = readPair(back);
       return {
         name,
+        label: name.replace(/, (\d+)[ -]minutes?\b.*/, ' ($1 min)'),
         samples: readNumber(samples),
         fps: {
           median: readNumber(median),
@@ -45,11 +46,23 @@ export function parsePlayLog(text) {
   if (!profile || !build) throw new Error('The play log profile or build is missing.');
 
   const minutes = [];
+  let columns;
   let previous = 0;
   for (const line of text.split(/\r?\n/)) {
-    const [time, scene, fps, preparing, copyingBack] = cells(line.trim());
+    const fields = cells(line.trim());
+    const [time] = fields;
+    if (time === 'UTC') {
+      columns = {
+        scene: fields.indexOf('Where and what'),
+        fps: fields.indexOf('fps'),
+        preparing: fields.indexOf('preparing ms'),
+        copyingBack: fields.indexOf('copying back ms'),
+      };
+      continue;
+    }
     const match = time?.match(/^(\d{2}):(\d{2})$/);
     if (!match) continue;
+    if (!columns) throw new Error('A play log sample is missing its table header.');
     const hours = Number(match[1]);
     const minute = Number(match[2]);
     if (hours > 23 || minute > 59) throw new Error('A play log timestamp is invalid.');
@@ -57,8 +70,10 @@ export function parsePlayLog(text) {
     if (elapsed < previous) elapsed += 1440;
     if (minutes.length && elapsed === previous) throw new Error('A play log minute is listed twice.');
     minutes.push({
-      time, elapsed, scene, fps: readNumber(fps),
-      preparing: readNumber(preparing), copyingBack: readNumber(copyingBack),
+      time, elapsed, scene: fields[columns.scene] ?? '',
+      fps: readNumber(fields[columns.fps]),
+      preparing: readNumber(fields[columns.preparing]),
+      copyingBack: readNumber(fields[columns.copyingBack]),
     });
     previous = elapsed;
   }

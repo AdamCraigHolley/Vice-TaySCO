@@ -1,4 +1,4 @@
-import { parseBenchmark, parsePlayLog } from './benchmark-data.js?v=compare';
+import { parseBenchmark, parsePlayLog } from './benchmark-data.js?v=playtest';
 
 const byId = id => document.getElementById(id);
 const ui = {
@@ -197,8 +197,8 @@ function makeComparison() {
     const group = element('section');
     const values = profiles.map(value);
     const limit = Math.ceil(Math.max(minimum, ...values) / 20) * 20;
-    const rows = profiles.map(({ name }, index) => [
-      reference + '-' + index, name, values[index], title + '. ' + description,
+    const rows = profiles.map(({ label }, index) => [
+      reference + '-' + index, label, values[index], title + '. ' + description,
       { reference, accent: index === 0 },
     ]);
     group.append(element('h3', '', title), makeBars(rows, unit, limit));
@@ -218,7 +218,7 @@ function makeFrameTiming() {
     ], 'MB');
   }
   view.limit = Math.max(100, Math.ceil(Math.max(...Object.values(timing)) / 20) * 20);
-  const gpuReading = view.profile.name === 'Series S'
+  const gpuReading = view.profile.name.split(',', 1)[0] === 'Series S'
     ? 'The reported Series S GPU counter is still under review.'
     : 'Median time reported by the GPU counter.';
   return makeBars([
@@ -294,7 +294,8 @@ function makeSession() {
     readings.set('minute-' + index, () => ({
       title: p.time + ' UTC',
       value: number(p.fps) + ' fps',
-      description: p.scene + ' · Preparing ' + number(p.preparing) + ' ms · Copying back ' + number(p.copyingBack) + ' ms',
+      description: [p.scene, 'Preparing ' + number(p.preparing) + ' ms',
+        'Copying back ' + number(p.copyingBack) + ' ms'].filter(Boolean).join(' · '),
     }));
   });
   function selectMinute(index, announce = true) {
@@ -397,7 +398,7 @@ function updateTarget(value) {
     gaps.replaceChildren(...view.benchmark.profiles.map(profile => {
       const difference = value - profile.fps.median;
       const row = element('div');
-      const label = profile.name + (difference >= 0 ? ' to target' : ' above target');
+      const label = profile.label + (difference >= 0 ? ' to target' : ' above target');
       const gap = element('dd', '', number(Math.abs(difference)) + ' fps');
       gap.dataset.tone = difference > 0 ? 'warm' : 'cool';
       row.append(element('dt', '', label), gap);
@@ -510,7 +511,7 @@ function renderContext() {
     day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
   }).format(new Date(data.date + 'T00:00:00Z'));
   byId('benchmark-context').replaceChildren(
-    (comparing ? 'RTX 4090 · Build ' : profile.name + ' · RTX 4090 · Build '),
+    (comparing ? 'RTX 4090 · Build ' : profile.label + ' · RTX 4090 · Build '),
     element('code', '', data.build), ' · ' + date,
     comparing ? ' · ' + data.profiles.length + ' measured profiles' : ' · ' + number(profile.samples, 0) + ' in-world samples',
   );
@@ -530,7 +531,7 @@ function measurementsTable(profiles) {
   for (const profile of profiles) {
     const { fps, timing, resources } = profile;
     const row = element('tr');
-    const name = element('th', '', profile.name);
+    const name = element('th', '', profile.label);
     name.scope = 'row';
     row.append(name);
     for (const cell of [
@@ -583,7 +584,7 @@ async function start() {
   const activeTabs = ui.tabs.filter(tab => !tab.hidden);
   const requested = location.hash.slice(1);
   view.chart = activeTabs.find(tab => tab.dataset.chart === requested)?.dataset.chart ?? activeTabs[0].dataset.chart;
-  for (const profile of data.profiles) ui.profile.add(new Option(profile.name, profile.name));
+  for (const profile of data.profiles) ui.profile.add(new Option(profile.label, profile.name));
   ui.profile.addEventListener('change', () => {
     renderProfile(data.profiles.find(profile => profile.name === ui.profile.value));
   });

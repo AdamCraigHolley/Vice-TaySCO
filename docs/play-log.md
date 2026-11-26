@@ -3,15 +3,15 @@
 Build 672cf831 (diag), the test PC in the README, `scripts\play.ps1 -Console series-s`
 with the RTX 4090 settings, full screen, the whole session recorded to video on the
 card's encoder. Played by hand through the scripted pad (`VICTORY_KEYS_FILE`), looking
-at the screen before each move. This log grows as the session goes on; the full numbers
-land in [measurements.md](measurements.md) when it ends.
+at the screen before each move. The run ended after 70 minutes in the world.
+The [measurement summary](measurements.md) covers the full session.
 
 Loading: 88 s to the start screen, 126 s into the world.
 
 ## Minute by minute
 
-Frame columns are the medians of the game's once-a-second frame lines in that minute
-(over 1,000 draws a frame). Times are UTC.
+Values come from recorded in-world frames with over 1,000 draws. Each row uses
+the median for its UTC minute, with the minimum where shown.
 
 | UTC | Where and what | fps | preparing ms | copying back ms | draws |
 |---|---|---|---|---|---|
@@ -140,8 +140,13 @@ More picture defects:
 | 09:57 | A fist fight in a barn, won | 11.5 | 7.6 | 68.4 | 20.8 | 6,662 |
 | 09:58 | Picking up an item, healing with it | 10.1 | 7.3 | 79.7 | 28.6 | 6,700 |
 | 09:59 | Dead again, back to the checkpoint | 10.5 | 4.4 | 62.3 | 20.6 | 6,762 |
-| 10:00-10:03 | The item again, out of the barn with an ally | 10.0-10.6 | 3.7 | 57-70 | 20-23 | 7,200-7,350 |
-| 10:04-10:06 | A shoot-out among trucks and quad bikes | 7.7-10.4 | 7.7 | 65-82 | 20-22 | 6,400-9,200 |
+| 10:00 | The item again, out of the barn with an ally | 10.6 | 9.1 | 66.9 | 23.4 | 7,300 |
+| 10:01 | The item again, out of the barn with an ally | 10.0 | 3.7 | 70.5 | 21.3 | 7,333 |
+| 10:02 | The item again, out of the barn with an ally | 10.1 | 9.6 | 64.3 | 23.3 | 7,210 |
+| 10:03 | The item again, out of the barn with an ally | 10.5 | 8.7 | 57.1 | 20.6 | 7,353 |
+| 10:04 | A shoot-out among trucks and quad bikes | 10.4 | 9.3 | 65.1 | 21.8 | 6,376 |
+| 10:05 | A shoot-out among trucks and quad bikes | 9.4 | 7.8 | 74.1 | 20.2 | 7,727 |
+| 10:06 | A shoot-out among trucks and quad bikes | 8.0 | 7.2 | 73.0 | 22.1 | 9,579 |
 
 ### The finding of this session: it slows down the longer it runs
 
@@ -150,8 +155,7 @@ More picture defects:
   there part of the game lives in the page file.
 - Over the same stretch the time spent **preparing** each frame doubled (38-43 ms to
   64-82 ms) and copying back rose (13-15 ms to 20-29 ms), while the card stayed where it
-  was (18.0 GB, 100-115 W). The frame rate went 20, 14, 10, 7.7 over the session, in
-  scenes of a similar weight.
+  was (18.0 GB, 100-115 W). The per-minute median fell to 8.0 fps by 10:06 UTC.
 - The likely cause, still to be shown: something kept for each new resource or area is
   never let go (a leak, or a cache with no ceiling), and once past physical RAM frame
   preparation waits on the disk.
@@ -164,6 +168,29 @@ healing with it, drawing, aiming, firing and reloading, an ally that follows, dr
 cash, enemies marked down on the minimap; several deaths and retries with no hang.
 
 More picture defects: a skylight in flat, glowing blue; a window in flat purple.
+
+## End of the session (10:07 to 10:22 UTC)
+
+Frame samples continued until 10:22 UTC. The final minute contains one sample.
+
+| UTC | fps | preparing ms | copying back ms | world lines |
+|---|---|---|---|---|
+| 10:07 | 7.5 | 84.1 | 26.1 | 11 |
+| 10:08 | 9.3 | 78.9 | 25.1 | 11 |
+| 10:09 | 10.9 | 64.7 | 23.4 | 11 |
+| 10:10 | 12.8 | 59.9 | 18.0 | 10 |
+| 10:11 | 8.9 | 85.6 | 27.4 | 11 |
+| 10:12 | 9.2 | 81.2 | 24.4 | 11 |
+| 10:13 | 8.9 | 82.7 | 24.3 | 12 |
+| 10:14 | 8.2 | 89.1 | 27.0 | 11 |
+| 10:15 | 6.7 | 108.1 | 26.0 | 10 |
+| 10:16 | 9.1 | 83.4 | 21.4 | 10 |
+| 10:17 | 8.7 | 82.4 | 24.7 | 11 |
+| 10:18 | 9.6 | 74.8 | 23.2 | 12 |
+| 10:19 | 9.5 | 76.7 | 25.9 | 11 |
+| 10:20 | 10.6 | 69.7 | 20.4 | 11 |
+| 10:21 | 8.4 | 85.2 | 21.3 | 12 |
+| 10:22 | 7.9 | 91.0 | 21.1 | 1 |
 
 ## Still to check
 

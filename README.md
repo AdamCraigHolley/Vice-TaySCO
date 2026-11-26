@@ -10,6 +10,11 @@ picture right, fully playable.
 copy of the game. It is not affiliated with or endorsed by the game's developer
 or publisher.
 
+> [!TIP]
+> **[View the gameplay screenshots](https://github.com/TaynanGT/Vice-Tay-Screenshots#readme)**
+>
+> Ten in-game captures from the Series S playtest.
+
 It is published on its own, not as a GitHub fork, with the whole history of the
 trees it is built from: it started from [codec-d/cool_fox](#credits) (now taken
 down), itself [avatarmanz/VIctory-7900XTX](https://github.com/avatarmanz/VIctory-7900XTX)
@@ -38,44 +43,42 @@ changes is in [docs/this-fork.md](docs/this-fork.md).
 <!-- measurements:start -->
 ### Measured sessions (build 672cf831)
 
-On the test PC above, with `scripts\play.ps1` and its RTX 4090 settings, in
-full screen, each session walking, running, turning the camera and taking
-captures every minute. Nothing compiled meanwhile; the screen was recorded
-to video on the card's encoder throughout.
+All runs used `scripts\play.ps1` and the RTX 4090 settings in full screen. The
+two short benchmarks ran a scripted route. The longer Series S session was
+played by hand.
 
 | Profile | In the world | To the start screen / to the world | fps: median (p10-p90; 1% low) | ms per frame (median) | Game memory, median / max | Card: memory max, load, power, temperature |
 |---|---|---|---|---|---|---|
 | Series X | 10 min, ended by the runner | 103 s / 161 s | **14.3** (13.6-14.7; 1% low 3.5) | 69.7: 35.0 GPU, 24.3 preparing, 20.0 copying back | 29.3 / 30.6 GB | 13.6 GB, 90.0%, 152.9 W, 57.0 C |
 | Series S | 10 min, ended by the runner | 88 s / 127 s | **20.8** (19.2-21.8; 1% low 8.7) | 48.1: 0.2 GPU, 36.9 preparing, 15.8 copying back | 24.2 / 26.0 GB | 12.0 GB, 81.0%, 129.9 W, 48.0 C |
-| Series S, 70 minutes played through the prison | 70 min, ended by the runner | 88 s / 126 s | **12.9** (8.3-20.1; 1% low 5.0) | 77.2: 0.0 GPU, 45.5 preparing, 16.1 copying back | 39.4 / 52.3 GB | 18.4 GB, 49.5%, 110.2 W, 50.1 C |
+| Series S, 70-minute playtest | 70 min, ended by the runner | 88 s / 126 s | **12.9** (8.3-20.1; 1% low 5.0) | 77.2: 0.0 GPU, 45.5 preparing, 16.1 copying back | 39.4 / 52.3 GB | 18.4 GB, 49.5%, 110.2 W, 50.1 C |
 
-Every number is from the game's own once-a-second frame lines in the world
-(over 1,000 draws a frame) and samples every 20 s; the full tables, with each
-part of a frame, are in [docs/measurements.md](docs/measurements.md).
+Frame metrics use recorded in-world samples with over 1,000 draws. Hardware
+and memory were sampled every 20 seconds. The full tables are in
+[docs/measurements.md](docs/measurements.md).
 <!-- measurements:end -->
 
 A longer session played by hand on Series S, minute by minute, with what
 worked and what looked wrong: [docs/play-log.md](docs/play-log.md).
 
-[View the gameplay screenshots](https://github.com/TaynanGT/Vice-Tay-Screenshots#readme).
-
 ### Benchmark charts
 
-The short benchmark runs compare the Series X and Series S profiles on the RTX
-4090. See the [full measurements](docs/measurements.md) for sample counts and methodology.
+The charts show two 10-minute benchmarks and a 70-minute Series S playtest on
+an RTX 4090. See the [full measurements](docs/measurements.md) for sample counts
+and methodology.
 
 [Open the interactive benchmark dashboard](https://taynangt.github.io/Vice-Tay/).
 
-![Series X and Series S median FPS, 1% lows and percentile ranges against the 30 fps target](docs/charts/profile-frame-rate.svg)
+![Median FPS, 1% lows and percentile ranges by run, with a 30 fps target](docs/charts/profile-frame-rate.svg)
 
-![Series X and Series S median frame times, preparation times and copy counters](docs/charts/profile-frame-timing.svg)
+![Median frame times, preparation times and copy counters by run](docs/charts/profile-frame-timing.svg)
 
 The Series S GPU timing counter is still under review. [Measurement note](docs/play-log.md#still-to-check)
 
 The longer Series S run has its own timeline of FPS medians per recorded minute.
 [Explore the recorded minutes](https://taynangt.github.io/Vice-Tay/#session).
 
-![Series S FPS medians in time order, with the 30 fps target and the highest and lowest logged minute](docs/charts/session-frame-rate.svg)
+![Series S FPS by minute, with the peak, lowest and final readings](docs/charts/session-frame-rate.svg)
 
 <!-- Refresh the charts with node scripts/generate-benchmark-charts.mjs after editing the source tables. -->
 
