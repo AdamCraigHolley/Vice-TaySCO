@@ -43,7 +43,13 @@ full screen, each session walking, running, turning the camera and taking
 captures every minute. Nothing compiled meanwhile; the screen was recorded
 to video on the card's encoder throughout.
 
-The sessions are running; their numbers land here as each one ends.
+| Profile | In the world | To the start screen / to the world | fps: median (p10-p90; 1% low) | ms per frame (median) | Game memory, median / max | Card: memory max, load, power, temperature |
+|---|---|---|---|---|---|---|
+| Series X | 10 min, ended by the runner | 103 s / 161 s | **14.3** (8.7-14.7; 1% low 1.6) | 69.8: 34.7 GPU, 24.6 preparing, 20.1 copying back | 29.3 / 30.6 GB | 13.6 GB, 90.0%, 152.9 W, 57.0 C |
+
+Every number is from the game's own once-a-second frame lines in the world
+(over 1,000 draws a frame) and samples every 20 s; the full tables, with each
+part of a frame, are in [docs/measurements.md](docs/measurements.md).
 <!-- measurements:end -->
 
 ### Played by hand
