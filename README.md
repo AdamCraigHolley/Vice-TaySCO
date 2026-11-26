@@ -57,9 +57,9 @@ part of a frame, are in [docs/measurements.md](docs/measurements.md).
 Series X profile on the RTX 4090, build `672cf831`. See the
 [full measurements](docs/measurements.md) for the sample and methodology.
 
-![Series X frame rate: 14.3 fps median, 13.6–14.7 fps from p10 to p90, and 3.5 fps 1% low](docs/charts/series-x-frame-rate.svg)
+![Series X frame rate: 14.3 fps median, 13.6–14.7 fps from p10 to p90, and 3.5 fps 1% low, with a 30 fps target](docs/charts/series-x-frame-rate.svg)
 
-![Series X frame timing: 69.7 ms per frame, 35.0 ms GPU, 24.3 ms preparing, and 20.0 ms copying back, all medians](docs/charts/series-x-frame-timing.svg)
+![Series X frame timing: 69.7 ms per frame, 35.0 ms GPU, 24.3 ms preparing, and 20.0 ms copying back, all medians, with a 33.3 ms frame budget for 30 fps](docs/charts/series-x-frame-timing.svg)
 
 ### What is known to be wrong
 
