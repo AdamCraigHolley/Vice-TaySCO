@@ -27,10 +27,15 @@ const ALLOWED_NAMES: &[&str] = &[
     "LICENSE-MIT",
     "LICENSE-APACHE",
 ];
-// Original documentation charts still go through every content check below.
-const ALLOWED_CHARTS: &[&str] = &[
-    "docs/charts/series-x-frame-rate.svg",
-    "docs/charts/series-x-frame-timing.svg",
+// The benchmark documentation still goes through every content check below.
+const ALLOWED_DOCUMENTATION: &[&str] = &[
+    "docs/.nojekyll",
+    "docs/benchmark-dashboard.css",
+    "docs/benchmark-dashboard.js",
+    "docs/benchmark-data.js",
+    "docs/charts/series-x-fps-distribution.svg",
+    "docs/charts/series-x-timing-counters.svg",
+    "docs/index.html",
 ];
 
 /// Paths explicitly exempted, with a reason. Keep this empty if at all possible.
@@ -154,7 +159,7 @@ pub fn check(path: &str, content: &[u8]) -> Vec<String> {
     let name = path.rsplit('/').next().unwrap_or(path);
     let ext = name.rsplit_once('.').map(|(_, e)| e.to_ascii_lowercase());
     let allowed = ALLOWED_NAMES.contains(&name)
-        || ALLOWED_CHARTS.contains(&path)
+        || ALLOWED_DOCUMENTATION.contains(&path)
         || ext
             .as_deref()
             .is_some_and(|e| ALLOWED_EXTENSIONS.contains(&e));
@@ -245,13 +250,14 @@ mod tests {
     }
 
     #[test]
-    fn chart_paths_keep_the_content_checks() {
+    fn documentation_paths_keep_the_content_checks() {
         let svg = br#"<svg xmlns="http://www.w3.org/2000/svg"/>"#;
-        for path in super::ALLOWED_CHARTS {
-            assert!(check(path, svg).is_empty());
+        for path in super::ALLOWED_DOCUMENTATION {
+            assert!(check(path, b"original documentation").is_empty());
             assert!(!check(path, b"DDS \0").is_empty());
         }
         assert!(!check("docs/charts/other.svg", svg).is_empty());
+        assert!(!check("docs/unrelated.js", b"let data = 0;").is_empty());
     }
 
     #[test]
