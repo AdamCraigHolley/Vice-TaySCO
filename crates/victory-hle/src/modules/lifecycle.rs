@@ -160,15 +160,77 @@ fn place(
     width: i32,
     height: i32,
 ) -> (u32, u32, (i32, i32, i32, i32)) {
-    if full_screen_on() {
-        // SAFETY: plain queries of the primary monitor's size.
-        let screen = unsafe { (wm::GetSystemMetrics(wm::SM_CXSCREEN), wm::GetSystemMetrics(wm::SM_CYSCREEN)) };
-        if let Some(full) = full_screen(ex_style, style, !parent.is_null(), screen) {
-            tracing::info!(width = screen.0, height = screen.1, "title window made full screen");
-            return full;
-        }
+    let fitted = fit(parent, x, y, width, height);
+    // SAFETY: plain queries of the primary monitor's size.
+    let screen = unsafe { (wm::GetSystemMetrics(wm::SM_CXSCREEN), wm::GetSystemMetrics(wm::SM_CYSCREEN)) };
+    let full = full_screen(ex_style, style, !parent.is_null(), screen);
+    if full.is_some() {
+        // A window that could go full screen: how it goes back to a window
+        // ([`toggle_full_screen`]).
+        *WINDOWED.lock().unwrap_or_else(|e| e.into_inner()) = Some((ex_style, style, fitted));
     }
-    (ex_style, style, fit(parent, x, y, width, height))
+    if full_screen_on()
+        && let Some(full) = full
+    {
+        tracing::info!(width = screen.0, height = screen.1, "title window made full screen");
+        FULL_SCREEN.store(true, std::sync::atomic::Ordering::Relaxed);
+        return full;
+    }
+    (ex_style, style, fitted)
+}
+
+/// The styles and place the title's top-level window had (or would have
+/// had) as a window, for going back from full screen.
+type Windowed = (u32, u32, (i32, i32, i32, i32));
+static WINDOWED: Mutex<Option<Windowed>> = Mutex::new(None);
+/// Whether the title's window is full screen now.
+static FULL_SCREEN: AtomicBool = AtomicBool::new(false);
+
+/// F11 or Alt+Enter on the title's window: full screen (frameless, over the
+/// monitor it is on) or back to the window it was made as, whichever it is
+/// not now. The swap chain stretches to either.
+fn toggle_full_screen(hwnd: HWND) {
+    let Some(windowed) = *WINDOWED.lock().unwrap_or_else(|e| e.into_inner()) else { return };
+    let full = FULL_SCREEN.load(std::sync::atomic::Ordering::Relaxed);
+    // SAFETY: queries of the title's window and the monitor it is on.
+    let monitor = unsafe {
+        let mut info: windows_sys::Win32::Graphics::Gdi::MONITORINFO = std::mem::zeroed();
+        info.cbSize = std::mem::size_of_val(&info) as u32;
+        let on = windows_sys::Win32::Graphics::Gdi::MonitorFromWindow(hwnd, windows_sys::Win32::Graphics::Gdi::MONITOR_DEFAULTTONEAREST);
+        (windows_sys::Win32::Graphics::Gdi::GetMonitorInfoW(on, &mut info) != 0).then_some(info.rcMonitor)
+    };
+    let Some(monitor) = monitor else { return };
+    let (ex_style, style, (x, y, w, h)) = toggled(full, windowed, monitor);
+    // SAFETY: the title's own window, on its own thread (this procedure).
+    unsafe {
+        wm::SetWindowLongPtrW(hwnd, wm::GWL_STYLE, style as isize);
+        wm::SetWindowLongPtrW(hwnd, wm::GWL_EXSTYLE, ex_style as isize);
+        wm::SetWindowPos(hwnd, std::ptr::null_mut(), x, y, w, h, wm::SWP_FRAMECHANGED | wm::SWP_NOZORDER | wm::SWP_SHOWWINDOW);
+    }
+    FULL_SCREEN.store(!full, std::sync::atomic::Ordering::Relaxed);
+    tracing::info!(full_screen = !full, "the title's window switched");
+}
+
+/// The styles and place after a switch from full screen (`full`) or to it:
+/// back to `windowed`, or a frameless popup over `monitor`. Visible either way.
+fn toggled(full: bool, windowed: Windowed, monitor: RECT) -> Windowed {
+    if full {
+        let (ex_style, style, place) = windowed;
+        return (ex_style, style | wm::WS_VISIBLE, place);
+    }
+    let (ex_style, style, _) = windowed;
+    let (w, h) = (monitor.right - monitor.left, monitor.bottom - monitor.top);
+    let (ex_style, style, _) =
+        full_screen(ex_style, style | wm::WS_VISIBLE, false, (w, h)).unwrap_or((ex_style, style, (0, 0, w, h)));
+    (ex_style, style, (monitor.left, monitor.top, w, h))
+}
+
+/// A key that switches full screen: F11, or Enter with Alt.
+fn switches_full_screen(message: u32, wparam: WPARAM, lparam: LPARAM) -> bool {
+    const VK_RETURN: usize = 0x0D;
+    const VK_F11: usize = 0x7A;
+    let alt = (lparam >> 29) & 1 != 0;
+    (message == wm::WM_KEYDOWN && wparam == VK_F11) || (message == wm::WM_SYSKEYDOWN && wparam == VK_RETURN && alt)
 }
 
 /// `VICTORY_FULLSCREEN=1`: the title's windows fill the whole primary monitor
@@ -325,6 +387,10 @@ extern "system" fn window_proc(
     if message == wm::WM_CLOSE && title_window {
         note_close("WM_CLOSE to the title's window");
         end_title("window closed", Box::new(|| {}));
+        return 0;
+    }
+    if title_window && switches_full_screen(message, wparam, lparam) {
+        toggle_full_screen(hwnd);
         return 0;
     }
     if message == wm::WM_NCDESTROY && title_window {
@@ -520,6 +586,25 @@ mod tests {
     use super::*;
 
     extern "system" fn noop(_: u8, _: *mut c_void) {}
+
+    #[test]
+    fn full_screen_switches_both_ways_on_the_window_s_monitor() {
+        let windowed = (wm::WS_EX_WINDOWEDGE, wm::WS_OVERLAPPEDWINDOW, (100, 50, 1600, 900));
+        let monitor = RECT { left: 3840, top: 0, right: 3840 + 2560, bottom: 1440 };
+        // to full screen: a frameless popup over the monitor the window is on
+        let (ex, style, place) = toggled(false, windowed, monitor);
+        assert_eq!(place, (3840, 0, 2560, 1440));
+        assert_eq!(style, wm::WS_POPUP | wm::WS_VISIBLE);
+        assert_eq!(ex & wm::WS_EX_WINDOWEDGE, 0);
+        // and back: the window it was made as, shown
+        assert_eq!(toggled(true, windowed, monitor), (wm::WS_EX_WINDOWEDGE, wm::WS_OVERLAPPEDWINDOW | wm::WS_VISIBLE, (100, 50, 1600, 900)));
+        // the keys: F11, and Enter only with Alt
+        let alt = 1 << 29;
+        assert!(switches_full_screen(wm::WM_KEYDOWN, 0x7A, 0));
+        assert!(switches_full_screen(wm::WM_SYSKEYDOWN, 0x0D, alt));
+        assert!(!switches_full_screen(wm::WM_KEYDOWN, 0x0D, 0));
+        assert!(!switches_full_screen(wm::WM_SYSKEYDOWN, 0x0D, 0));
+    }
 
     #[test]
     fn a_full_screen_window_is_a_frameless_popup_over_the_screen() {
